@@ -1,0 +1,7 @@
+#:schema https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/cargo.json
+# @help: https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[package]
+edition = "2024"
+name = "devpp"
+version = "0.0.0"
