@@ -3,11 +3,22 @@
   "$schema": "https://raw.githubusercontent.com/devcontainers/spec/refs/heads/main/schemas/devContainer.schema.json",
   "customizations": {
     "vscode": {
-      "extensions": ["EditorConfig.EditorConfig", "esbenp.prettier-vscode", "FelixZeller.markdown-oxide"],
+      "extensions": [
+        "docker.docker",
+        "EditorConfig.EditorConfig",
+        "esbenp.prettier-vscode",
+        "FelixZeller.markdown-oxide",
+        "ms-azuretools.vscode-docker"
+      ],
       "settings": {}
     }
   },
   "features": {
+    // @see: https://github.com/devcontainers/features/pkgs/container/features/docker-in-docker/versions
+    "ghcr.io/devcontainers/features/docker-in-docker:2.12.4": {
+      // @see: https://packages.microsoft.com/ubuntu/24.04/prod/pool/main/m/moby-cli
+      "version": "28.3.3"
+    },
     // @see: https://github.com/devcontainers/features/pkgs/container/features/rust/versions
     "ghcr.io/devcontainers/features/rust:1.5.0": {
       // @see: https://github.com/rust-lang/rust/tags
