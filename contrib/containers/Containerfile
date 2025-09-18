@@ -1,0 +1,66 @@
+# syntax=docker.io/docker/dockerfile:1.18.0-labs@sha256:79cdc14e1c220efb546ad14a8ebc816e3277cd72d27195ced5bebdd226dd1025
+# TODO: https://github.com/containers/buildah/issues/4211
+
+# @help: https://docs.docker.com/reference/dockerfile
+# @help: https://github.com/containers/common/blob/main/docs/Containerfile.5.md
+
+# @see: https://hub.docker.com/r/tonistiigi/xx/tags
+FROM --platform=${BUILDPLATFORM} docker.io/tonistiigi/xx@sha256:010d4b66aed389848b0694f91c7aaee9df59a6f20be7f5d12e53663a37bd14e2 AS xx
+
+# @see: https://github.com/rust-cross/cargo-zigbuild/pkgs/container/cargo-zigbuild/versions
+FROM --platform=${BUILDPLATFORM} ghcr.io/rust-cross/cargo-zigbuild:0.20.1@sha256:af1bc2b869c5d76c1300f7a4685c2f1793d068e6e895c9f5c399b517b31a731e AS base
+
+SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
+
+COPY --from=xx --link "/" "/"
+
+COPY --chmod=0755 <<EOF "/usr/bin/clang"
+#!/bin/sh
+set -e
+zig cc "\${@}"
+EOF
+
+COPY --chmod=0755 <<EOF "/usr/bin/clang++"
+#!/bin/sh
+set -e
+zig c++ "\${@}"
+EOF
+
+FROM base AS deps
+
+WORKDIR "/app/"
+
+COPY "./crates/devpp/Cargo.toml" "./crates/devpp/Cargo.toml"
+COPY "./Cargo.lock" "./Cargo.lock"
+COPY "./Cargo.toml" "./Cargo.toml"
+COPY "./rust-toolchain.toml" "./rust-toolchain.toml"
+
+# TODO: https://github.com/rust-lang/cargo/issues/2644
+RUN --mount=type=cache,target=/usr/local/cargo/git/db/ --mount=type=cache,target=/usr/local/cargo/registry/cache/ --mount=type=cache,target=/usr/local/cargo/registry/index/ <<EOF
+echo "fn main() {}" | install -D "/dev/stdin" "./crates/devpp/src/main.rs"
+cargo fetch
+EOF
+
+FROM deps AS builder
+
+COPY "./crates/" "./crates/"
+
+ARG TARGETPLATFORM
+
+RUN --mount=type=cache,target=/usr/local/cargo/git/db/ --mount=type=cache,target=/usr/local/cargo/registry/cache/ --mount=type=cache,target=/usr/local/cargo/registry/index/ <<EOF
+cargo zigbuild --release --target "$(xx-cargo --print-target-triple)"
+xx-verify "./target/$(xx-cargo --print-target-triple)/release/devpp"
+mv "./target/$(xx-cargo --print-target-triple)/release/devpp" "/usr/local/bin/devpp"
+EOF
+
+FROM scratch AS artifacts
+
+COPY --from=builder --chmod=0755 --link "/usr/local/bin/devpp" "/devpp"
+
+# TODO: https://github.com/GoogleContainerTools/distroless/issues/686
+# @see: https://console.cloud.google.com/artifacts/docker/distroless/us/gcr.io/base-debian12
+FROM gcr.io/distroless/base-debian12:latest@sha256:fa15492938650e1a5b87e34d47dc7d99a2b4e8aefd81b931b3f3eb6bb4c1d2f6 AS runner
+
+COPY --from=builder --chmod=0755 --link "/usr/local/bin/devpp" "/usr/local/bin/devpp"
+
+ENTRYPOINT ["/out/devpp"]
