@@ -1,0 +1,4 @@
+#:schema https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/rustfmt.json
+# @help: https://rust-lang.github.io/rustfmt
+
+max_width = 120
