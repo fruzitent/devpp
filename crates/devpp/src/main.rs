@@ -7,7 +7,9 @@ fn main() {
     match args.command {
         args::Commands::Build { config, workspace } => {
             let config_path = devcontainer::find_config(workspace, config).unwrap();
-            dbg!(&config_path);
+            let mut s = std::fs::read_to_string(config_path.clone()).unwrap();
+            let devcontainer = devcontainer::DevContainer::from_str(&mut s).unwrap();
+            dbg!(&devcontainer);
         }
     }
 }

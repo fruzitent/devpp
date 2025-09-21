@@ -8,28 +8,67 @@ pub mod generated {
 // index 0000000..0000000 100644
 // --- a/devcontainer.schema.json
 // +++ b/devcontainer.schema.json
-// @@ -451,18 +451,6 @@
-//                                                 },
-//                                                 "gpu": {
-//                                                         "oneOf": [
-// -                                                               {
-// -                                                                       "type": [
-// -                                                                               "boolean",
-// -                                                                               "string"
-// -                                                                       ],
-// -                                                                       "enum": [
-// -                                                                               true,
-// -                                                                               false,
-// -                                                                               "optional"
-// -                                                                       ],
-// -                                                                       "description": "Indicates whether a GPU is required. The string \"optional\" indicates that a GPU is optional. An object value can be used to configure more detailed requirements."
-// -                                                               },
-//                                                                 {
-//                                                                         "type": "object",
-//                                                                         "properties": {
+// @@ -19,29 +19,12 @@
+//  				"features": {
+//  					"type": "object",
+//  					"description": "Features to add to the dev container.",
+// -					"properties": {
+// -						"fish": {
+// -							"deprecated": true,
+// -							"deprecationMessage": "Legacy feature not supported. Please check https://containers.dev/features for replacements."
+// -						},
+// -						"maven": {
+// -							"deprecated": true,
+// -							"deprecationMessage": "Legacy feature will be removed in the future. Please check https://containers.dev/features for replacements. E.g., `ghcr.io/devcontainers/features/java` has an option to install Maven."
+// -						},
+// -						"gradle": {
+// -							"deprecated": true,
+// -							"deprecationMessage": "Legacy feature will be removed in the future. Please check https://containers.dev/features for replacements. E.g., `ghcr.io/devcontainers/features/java` has an option to install Gradle."
+// -						},
+// -						"homebrew": {
+// -							"deprecated": true,
+// -							"deprecationMessage": "Legacy feature not supported. Please check https://containers.dev/features for replacements."
+// -						},
+// -						"jupyterlab": {
+// -							"deprecated": true,
+// -							"deprecationMessage": "Legacy feature will be removed in the future. Please check https://containers.dev/features for replacements. E.g., `ghcr.io/devcontainers/features/python` has an option to install JupyterLab."
+// +					"additionalProperties": {
+// +						"type": "object",
+// +							"additionalProperties": {
+// +							"type": "string"
+//  						}
+// -					},
+// -					"additionalProperties": true
+// +                    }
+//  				},
+//  				"overrideFeatureInstallOrder": {
+//  					"type": "array",
+// @@ -451,18 +434,6 @@
+//  						},
+//  						"gpu": {
+//  							"oneOf": [
+// -								{
+// -									"type": [
+// -										"boolean",
+// -										"string"
+// -									],
+// -									"enum": [
+// -										true,
+// -										false,
+// -										"optional"
+// -									],
+// -									"description": "Indicates whether a GPU is required. The string \"optional\" indicates that a GPU is optional. An object value can be used to configure more detailed requirements."
+// -								},
+//  								{
+//  									"type": "object",
+//  									"properties": {
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
+    #[error(transparent)]
+    InvalidJson(#[from] serde_json::Error),
+    #[error(transparent)]
+    InvalidJsonc(#[from] std::io::Error),
     #[error("config is not found")]
     NotFoundConfig,
     #[error("config {config:?} is not found within search path {entries:?}")]
@@ -40,6 +79,43 @@ pub enum Error {
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
+
+#[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
+pub struct DevContainer {
+    #[serde(flatten)]
+    pub common: generated::DevContainerCommon,
+    #[serde(flatten)]
+    pub is_compose: IsCompose,
+}
+
+#[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
+#[serde(untagged)]
+pub enum IsCompose {
+    Compose(generated::ComposeContainer),
+    NonCompose(NonCompose),
+}
+
+#[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
+pub struct NonCompose {
+    #[serde(flatten)]
+    pub base: generated::NonComposeBase,
+    #[serde(flatten)]
+    pub is_image: IsImage,
+}
+
+#[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
+#[serde(untagged)]
+pub enum IsImage {
+    Dockerfile(generated::DockerfileContainer),
+    Image(generated::ImageContainer),
+}
+
+impl DevContainer {
+    pub fn from_str(s: &mut str) -> Result<Self> {
+        json_strip_comments::strip(s).map_err(Error::InvalidJsonc)?;
+        serde_json::from_str::<Self>(&s).map_err(Error::InvalidJson)
+    }
+}
 
 // @see: https://containers.dev/implementors/spec/#devcontainerjson
 pub fn find_configs<P: AsRef<std::path::Path>>(workspace: P) -> std::io::Result<Vec<std::path::PathBuf>> {
