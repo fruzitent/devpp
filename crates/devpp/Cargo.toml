@@ -3,6 +3,7 @@
 
 [dependencies]
 clap = { version = "4.5.47", features = ["derive"] }
+clap_complete = "4.5.58"
 json-strip-comments = "3.0.1"
 regress = "0.10.4"
 serde = "1.0.225"

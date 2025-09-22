@@ -11,5 +11,6 @@ fn main() {
             let devcontainer = devcontainer::DevContainer::from_str(&mut s).unwrap();
             dbg!(&devcontainer);
         }
+        args::Commands::Completion { shell } => args::generate_shell_completion(shell),
     }
 }
