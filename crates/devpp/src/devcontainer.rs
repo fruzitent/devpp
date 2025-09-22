@@ -117,18 +117,40 @@ impl DevContainer {
     }
 }
 
-// @see: https://containers.dev/implementors/spec/#devcontainerjson
-pub fn find_configs<P: AsRef<std::path::Path>>(workspace: P) -> std::io::Result<Vec<std::path::PathBuf>> {
+#[derive(Clone, Debug)]
+pub struct Config {
+    pub kind: ConfigKind,
+    pub path: std::path::PathBuf,
+}
+
+/// @see: https://containers.dev/implementors/spec/#devcontainerjson
+#[derive(Clone, Debug)]
+pub enum ConfigKind {
+    /// .devcontainer/devcontainer.json
+    Nested,
+    /// .devcontainer.json
+    Plain,
+    /// .devcontainer/<folder>/devcontainer.json
+    Scoped,
+}
+
+pub fn find_configs<P: AsRef<std::path::Path>>(workspace: P) -> std::io::Result<Vec<Config>> {
     let mut entries = vec![];
 
     let case_nested = workspace.as_ref().join(".devcontainer/devcontainer.json");
     if case_nested.exists() {
-        entries.push(case_nested);
+        entries.push(Config {
+            kind: ConfigKind::Nested,
+            path: case_nested,
+        });
     }
 
     let case_plain = workspace.as_ref().join(".devcontainer.json");
     if case_plain.exists() {
-        entries.push(case_plain);
+        entries.push(Config {
+            kind: ConfigKind::Plain,
+            path: case_plain,
+        });
     }
 
     if let Ok(dir) = std::fs::read_dir(workspace.as_ref().join(".devcontainer")) {
@@ -136,7 +158,10 @@ pub fn find_configs<P: AsRef<std::path::Path>>(workspace: P) -> std::io::Result<
             let path = entry?.path();
             let case_scoped = path.join("devcontainer.json");
             if case_scoped.exists() {
-                entries.push(case_scoped);
+                entries.push(Config {
+                    kind: ConfigKind::Scoped,
+                    path: case_scoped,
+                });
             }
         }
     }
@@ -144,7 +169,7 @@ pub fn find_configs<P: AsRef<std::path::Path>>(workspace: P) -> std::io::Result<
     Ok(entries)
 }
 
-pub fn find_config<P: AsRef<std::path::Path>>(workspace: P, config: Option<P>) -> Result<std::path::PathBuf> {
+pub fn find_config<P: AsRef<std::path::Path>>(workspace: P, config: Option<P>) -> Result<Config> {
     let entries = find_configs(workspace).unwrap();
 
     if entries.is_empty() {
@@ -154,7 +179,7 @@ pub fn find_config<P: AsRef<std::path::Path>>(workspace: P, config: Option<P>) -
     match config {
         Some(config) => {
             for entry in &entries {
-                let lhs = entry.canonicalize().unwrap();
+                let lhs = entry.path.canonicalize().unwrap();
                 let rhs = config.as_ref().canonicalize().unwrap();
                 if lhs.eq(&rhs) {
                     return Ok(entry.to_owned());
@@ -162,7 +187,7 @@ pub fn find_config<P: AsRef<std::path::Path>>(workspace: P, config: Option<P>) -
             }
             Err(Error::NotFoundConfigArg {
                 config: config.as_ref().to_path_buf(),
-                entries,
+                entries: entries.iter().map(|v| v.path.to_owned()).collect(),
             })
         }
         None => Ok(entries.first().unwrap().clone()),
