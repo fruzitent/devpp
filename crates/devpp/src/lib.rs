@@ -21,8 +21,15 @@ pub fn build(workspace: std::path::PathBuf, config: Option<std::path::PathBuf>) 
     let abs_dotdev = devcontainer::find_dotdev(&config)?.canonicalize().unwrap();
 
     for (feature_ref, _options) in devcontainer.common.features {
-        let ref_valid = feature::FeatureRefValid::new(abs_config.clone(), abs_dotdev.clone(), feature_ref)?;
-        dbg!(&ref_valid);
+        let ref_valid = feature::FeatureRefValid::new(abs_config.clone(), abs_dotdev.clone(), feature_ref.clone())?;
+
+        if !matches!(ref_valid.0.kind, feature::FeatureRefKind::Local) {
+            continue;
+        }
+
+        let mut s = std::fs::read_to_string(abs_config.join(&feature_ref).join("devcontainer-feature.json")).unwrap();
+        let feature = feature::Feature::from_str(&mut s)?;
+        dbg!(&feature);
     }
 
     Ok(())

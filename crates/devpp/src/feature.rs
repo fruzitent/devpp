@@ -5,6 +5,10 @@ pub mod generated {
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
+    #[error(transparent)]
+    InvalidJson(#[from] serde_json::Error),
+    #[error(transparent)]
+    InvalidJsonc(#[from] std::io::Error),
     #[error("feature is not found: {feature_ref:?}")]
     NotFound { feature_ref: String },
     #[error("the local Feature's sub-folder must contain a install.sh entrypoint script: {feature_ref:?}")]
@@ -64,7 +68,7 @@ impl FeatureRefValid {
             if !abs_feature.join("install.sh").exists() {
                 return Err(Error::NotFoundEntry { feature_ref });
             }
-            return Ok(FeatureRefValid(FeatureRef {
+            return Ok(Self(FeatureRef {
                 inner: feature_ref,
                 kind: FeatureRefKind::Local,
             }));
@@ -73,15 +77,28 @@ impl FeatureRefValid {
         match feature_ref {
             _ if feature_ref.starts_with("./") => Err(Error::NotFound { feature_ref }),
             // @see: https://containers.dev/implementors/features-distribution/#directly-reference-tarball
-            _ if feature_ref.starts_with("https://") => Ok(FeatureRefValid(FeatureRef {
+            _ if feature_ref.starts_with("https://") => Ok(Self(FeatureRef {
                 inner: feature_ref,
                 kind: FeatureRefKind::Tarball,
             })),
             // @see: https://containers.dev/implementors/features-distribution/#oci-registry
-            _ => Ok(FeatureRefValid(FeatureRef {
+            _ => Ok(Self(FeatureRef {
                 inner: feature_ref,
                 kind: FeatureRefKind::Artifact,
             })),
         }
+    }
+}
+
+#[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
+pub struct Feature {
+    #[serde(flatten)]
+    pub inner: generated::Feature,
+}
+
+impl Feature {
+    pub fn from_str(s: &mut str) -> Result<Self> {
+        json_strip_comments::strip(s).map_err(Error::InvalidJsonc)?;
+        serde_json::from_str::<Self>(&s).map_err(Error::InvalidJson)
     }
 }
