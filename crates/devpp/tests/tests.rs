@@ -39,6 +39,24 @@ fn feature_mismatch_id() {
 }
 
 #[test]
+fn feature_missing_install() {
+    let workspace = std::path::PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/tests/feature_missing_install"));
+    assert!(matches!(
+        devpp::build(workspace.to_path_buf(), None),
+        Err(devpp::Error::Feature(devpp::feature::Error::NotFoundEntry { .. })),
+    ));
+}
+
+#[test]
+fn feature_missing_metadata() {
+    let workspace = std::path::PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/tests/feature_missing_metadata"));
+    assert!(matches!(
+        devpp::build(workspace.to_path_buf(), None),
+        Err(devpp::Error::Feature(devpp::feature::Error::NotFoundMetadata { .. })),
+    ));
+}
+
+#[test]
 fn featureref_absolute() {
     let workspace = std::path::PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/tests/featureref_absolute"));
     assert!(matches!(
@@ -61,27 +79,6 @@ fn featureref_local_traversal() {
     let workspace = std::path::PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/tests/featureref_local_traversal"));
     let config = workspace.join(".devcontainer/my_image/devcontainer.json");
     assert!(matches!(devpp::build(workspace.to_path_buf(), Some(config)), Ok(())));
-}
-
-#[test]
-fn featureref_missing_install() {
-    let workspace = std::path::PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/tests/featureref_missing_install"));
-    assert!(matches!(
-        devpp::build(workspace.to_path_buf(), None),
-        Err(devpp::Error::Feature(devpp::feature::Error::NotFoundEntry { .. })),
-    ));
-}
-
-#[test]
-fn featureref_missing_metadata() {
-    let workspace = std::path::PathBuf::from(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/tests/featureref_missing_metadata"
-    ));
-    assert!(matches!(
-        devpp::build(workspace.to_path_buf(), None),
-        Err(devpp::Error::Feature(devpp::feature::Error::NotFoundMetadata { .. })),
-    ));
 }
 
 #[test]

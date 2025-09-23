@@ -27,8 +27,7 @@ pub fn build(workspace: std::path::PathBuf, config: Option<std::path::PathBuf>) 
             continue;
         }
 
-        let mut s = std::fs::read_to_string(abs_config.join(&feature_ref).join("devcontainer-feature.json")).unwrap();
-        let feature_valid = feature::FeatureValid::from_str(&mut s, abs_config.clone(), ref_valid)?;
+        let feature_valid = feature::FeatureValid::new(ref_valid, abs_config.clone())?;
         dbg!(&feature_valid);
     }
 

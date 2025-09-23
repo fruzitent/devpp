@@ -68,12 +68,6 @@ impl FeatureRefValid {
                     feature_ref,
                 });
             }
-            if !abs_feature.join("devcontainer-feature.json").exists() {
-                return Err(Error::NotFoundMetadata { feature_ref });
-            }
-            if !abs_feature.join("install.sh").exists() {
-                return Err(Error::NotFoundEntry { feature_ref });
-            }
             return Ok(Self(FeatureRef {
                 inner: feature_ref,
                 kind: FeatureRefKind::Local,
@@ -113,15 +107,27 @@ impl Feature {
 pub struct FeatureValid(pub Feature);
 
 impl FeatureValid {
-    pub fn from_str(s: &mut str, abs_config: std::path::PathBuf, ref_valid: FeatureRefValid) -> Result<Self> {
-        let feature = Feature::from_str(s)?;
+    pub fn new(ref_valid: FeatureRefValid, abs_config: std::path::PathBuf) -> Result<Self> {
+        let abs_feature = abs_config.join(&ref_valid.0.inner).canonicalize().unwrap();
 
-        let name = abs_config
-            .join(&ref_valid.0.inner)
-            .iter()
-            .last()
-            .unwrap()
-            .to_os_string();
+        let metadata_path = abs_feature.join("devcontainer-feature.json");
+        if !metadata_path.exists() {
+            return Err(Error::NotFoundMetadata {
+                feature_ref: ref_valid.0.inner.clone(),
+            });
+        }
+
+        let entrypoint_path = abs_feature.join("install.sh");
+        if !entrypoint_path.exists() {
+            return Err(Error::NotFoundEntry {
+                feature_ref: ref_valid.0.inner.clone(),
+            });
+        }
+
+        let mut s = std::fs::read_to_string(metadata_path).unwrap();
+        let feature = Feature::from_str(&mut s)?;
+
+        let name = abs_feature.iter().last().unwrap().to_os_string();
         let id = &feature.inner.id;
         if name.to_str().unwrap() != id {
             return Err(Error::MismatchId {
