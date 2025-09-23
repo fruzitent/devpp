@@ -76,6 +76,10 @@ pub enum Error {
         config: std::path::PathBuf,
         entries: Vec<std::path::PathBuf>,
     },
+    #[error("the project must have a .devcontainer/ folder at the root of the project workspace folder")]
+    NotFoundDotDev,
+    #[error("parent directory is not found")]
+    NotFoundParent,
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
@@ -191,5 +195,19 @@ pub fn find_config<P: AsRef<std::path::Path>>(workspace: P, config: Option<P>) -
             })
         }
         None => Ok(entries.first().unwrap().clone()),
+    }
+}
+
+pub fn find_dotdev(config: &Config) -> Result<std::path::PathBuf> {
+    match config.kind {
+        ConfigKind::Nested => Ok(config.path.parent().ok_or(Error::NotFoundDotDev)?.to_owned()),
+        ConfigKind::Plain => Err(Error::NotFoundDotDev),
+        ConfigKind::Scoped => Ok(config
+            .path
+            .parent()
+            .ok_or(Error::NotFoundParent)?
+            .parent()
+            .ok_or(Error::NotFoundParent)?
+            .to_owned()),
     }
 }

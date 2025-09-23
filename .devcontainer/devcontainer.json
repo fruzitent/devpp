@@ -8,12 +8,22 @@
         "EditorConfig.EditorConfig",
         "esbenp.prettier-vscode",
         "FelixZeller.markdown-oxide",
-        "ms-azuretools.vscode-docker"
+        "mads-hartmann.bash-ide-vscode",
+        "mkhl.shfmt",
+        "ms-azuretools.vscode-docker",
+        "timonwong.shellcheck"
       ],
-      "settings": {}
+      "settings": {
+        "shellcheck.customArgs": ["-x"]
+      }
     }
   },
   "features": {
+    // @see: https://github.com/devcontainers-extra/features/pkgs/container/features/shfmt/versions
+    "ghcr.io/devcontainers-extra/features/shfmt:1.0.2": {
+      // @see: https://github.com/mvdan/sh/releases
+      "version": "3.12.0"
+    },
     // @see: https://github.com/devcontainers/features/pkgs/container/features/docker-in-docker/versions
     "ghcr.io/devcontainers/features/docker-in-docker:2.12.4": {
       // @see: https://packages.microsoft.com/ubuntu/24.04/prod/pool/main/m/moby-cli

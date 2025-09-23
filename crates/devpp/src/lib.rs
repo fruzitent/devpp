@@ -5,14 +5,25 @@ pub mod feature;
 pub enum Error {
     #[error(transparent)]
     DevContainer(#[from] devcontainer::Error),
+    #[error(transparent)]
+    Feature(#[from] feature::Error),
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
 
 pub fn build(workspace: std::path::PathBuf, config: Option<std::path::PathBuf>) -> Result<()> {
     let config = devcontainer::find_config(&workspace, config.as_ref())?;
+
     let mut s = std::fs::read_to_string(&config.path).unwrap();
     let devcontainer = devcontainer::DevContainer::from_str(&mut s)?;
-    dbg!(&devcontainer);
+
+    let abs_config = config.path.parent().unwrap().canonicalize().unwrap();
+    let abs_dotdev = devcontainer::find_dotdev(&config)?.canonicalize().unwrap();
+
+    for (feature_ref, _options) in devcontainer.common.features {
+        let ref_valid = feature::FeatureRefValid::new(abs_config.clone(), abs_dotdev.clone(), feature_ref)?;
+        dbg!(&ref_valid);
+    }
+
     Ok(())
 }
