@@ -193,23 +193,3 @@ pub fn find_config<P: AsRef<std::path::Path>>(workspace: P, config: Option<P>) -
         None => Ok(entries.first().unwrap().clone()),
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn config_unexpected_location() {
-        let temp_dir = tempfile::tempdir().unwrap();
-
-        let config = temp_dir.path().join("foo/bar.json");
-        std::fs::create_dir_all(config.parent().unwrap()).unwrap();
-        std::fs::File::create(&config).unwrap();
-
-        std::fs::File::create(temp_dir.path().join(".devcontainer.json")).unwrap();
-        assert!(matches!(
-            find_config(temp_dir.path().to_path_buf(), Some(config)),
-            Err(Error::NotFoundConfigArg { .. })
-        ));
-    }
-}

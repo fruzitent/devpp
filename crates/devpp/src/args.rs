@@ -52,10 +52,5 @@ pub fn generate_shell_completion<G>(generator: G)
 where
     G: clap_complete::Generator,
 {
-    clap_complete::generate(
-        generator,
-        &mut Args::command(),
-        env!("CARGO_BIN_NAME"),
-        &mut std::io::stdout(),
-    )
+    clap_complete::generate(generator, &mut Args::command(), "devpp", &mut std::io::stdout())
 }
