@@ -30,6 +30,15 @@ fn config_plain() {
 }
 
 #[test]
+fn feature_mismatch_id() {
+    let workspace = std::path::PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/tests/feature_mismatch_id"));
+    assert!(matches!(
+        devpp::build(workspace.to_path_buf(), None),
+        Err(devpp::Error::Feature(devpp::feature::Error::MismatchId { .. })),
+    ));
+}
+
+#[test]
 fn featureref_absolute() {
     let workspace = std::path::PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/tests/featureref_absolute"));
     assert!(matches!(

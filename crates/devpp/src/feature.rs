@@ -9,6 +9,12 @@ pub enum Error {
     InvalidJson(#[from] serde_json::Error),
     #[error(transparent)]
     InvalidJsonc(#[from] std::io::Error),
+    #[error("the sub-folder name must match the Feature's id field: {feature_ref:?} expected {id:?}, but got {name:?}")]
+    MismatchId {
+        feature_ref: String,
+        id: String,
+        name: std::ffi::OsString,
+    },
     #[error("feature is not found: {feature_ref:?}")]
     NotFound { feature_ref: String },
     #[error("the local Feature's sub-folder must contain a install.sh entrypoint script: {feature_ref:?}")]
@@ -100,5 +106,31 @@ impl Feature {
     pub fn from_str(s: &mut str) -> Result<Self> {
         json_strip_comments::strip(s).map_err(Error::InvalidJsonc)?;
         serde_json::from_str::<Self>(&s).map_err(Error::InvalidJson)
+    }
+}
+
+#[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
+pub struct FeatureValid(pub Feature);
+
+impl FeatureValid {
+    pub fn from_str(s: &mut str, abs_config: std::path::PathBuf, ref_valid: FeatureRefValid) -> Result<Self> {
+        let feature = Feature::from_str(s)?;
+
+        let name = abs_config
+            .join(&ref_valid.0.inner)
+            .iter()
+            .last()
+            .unwrap()
+            .to_os_string();
+        let id = &feature.inner.id;
+        if name.to_str().unwrap() != id {
+            return Err(Error::MismatchId {
+                feature_ref: ref_valid.0.inner,
+                id: id.clone(),
+                name,
+            });
+        }
+
+        Ok(Self(feature))
     }
 }
