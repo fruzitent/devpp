@@ -1,3 +1,4 @@
 # @help: https://prettier.io/docs/ignore
 
-*.schema.json
+devcontainer.schema.json
+feature.schema.json

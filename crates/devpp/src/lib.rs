@@ -1,4 +1,5 @@
 pub mod devcontainer;
+pub mod extension;
 pub mod feature;
 
 #[derive(Debug, thiserror::Error)]
@@ -29,6 +30,11 @@ pub fn build(workspace: std::path::PathBuf, config: Option<std::path::PathBuf>) 
 
         let feature_valid = feature::FeatureValid::new(ref_valid, abs_config.clone())?;
         dbg!(&feature_valid);
+
+        let customizations = extension::Customizations::new(feature_valid);
+        if let Some(devpp) = customizations.0.devpp {
+            dbg!(&devpp);
+        }
     }
 
     Ok(())
