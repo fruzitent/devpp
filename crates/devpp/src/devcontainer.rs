@@ -114,10 +114,34 @@ pub enum IsImage {
     Image(generated::ImageContainer),
 }
 
+#[derive(Clone, Debug)]
+pub struct BuildInfo {
+    pub containerfile: String,
+    pub context: String,
+    pub target: Option<String>,
+}
+
 impl DevContainer {
     pub fn from_str(s: &mut str) -> Result<Self> {
         json_strip_comments::strip(s).map_err(Error::InvalidJsonc)?;
         serde_json::from_str::<Self>(&s).map_err(Error::InvalidJson)
+    }
+
+    pub fn get_build_info(&self) -> BuildInfo {
+        match &self.is_compose {
+            IsCompose::Compose(_) => unimplemented!(),
+            IsCompose::NonCompose(non_compose) => match &non_compose.is_image {
+                IsImage::Dockerfile(dockerfile_container) => match dockerfile_container {
+                    generated::DockerfileContainer::Variant0 { build } => BuildInfo {
+                        containerfile: build.dockerfile.clone(),
+                        context: build.context.clone().unwrap_or(String::from(".")),
+                        target: build.target.clone(),
+                    },
+                    generated::DockerfileContainer::Variant1 { .. } => unimplemented!(),
+                },
+                IsImage::Image(_) => unimplemented!(),
+            },
+        }
     }
 }
 

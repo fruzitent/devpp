@@ -21,6 +21,9 @@ pub fn build(workspace: std::path::PathBuf, config: Option<std::path::PathBuf>) 
     let abs_config = config.path.parent().unwrap().canonicalize().unwrap();
     let abs_dotdev = devcontainer::find_dotdev(&config)?.canonicalize().unwrap();
 
+    let build_info = devcontainer.get_build_info();
+    dbg!(&build_info);
+
     for (feature_ref, _options) in devcontainer.common.features {
         let ref_valid = feature::FeatureRefValid::new(abs_config.clone(), abs_dotdev.clone(), feature_ref.clone())?;
 
