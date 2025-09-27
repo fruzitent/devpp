@@ -127,13 +127,13 @@ impl FeatureValid {
         let mut s = std::fs::read_to_string(metadata_path).unwrap();
         let feature = Feature::from_str(&mut s)?;
 
-        let name = abs_feature.iter().last().unwrap().to_os_string();
+        let name = abs_feature.iter().next_back().unwrap();
         let id = &feature.inner.id;
-        if name.to_str().unwrap() != id {
+        if name.to_str().unwrap() != id.as_str() {
             return Err(Error::MismatchId {
                 feature_ref: ref_valid.0.inner,
                 id: id.clone(),
-                name,
+                name: name.to_owned(),
             });
         }
 
