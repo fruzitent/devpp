@@ -122,11 +122,6 @@ pub struct BuildInfo {
 }
 
 impl DevContainer {
-    pub fn from_str(s: &mut str) -> Result<Self> {
-        json_strip_comments::strip(s).map_err(Error::InvalidJsonc)?;
-        serde_json::from_str::<Self>(&s).map_err(Error::InvalidJson)
-    }
-
     pub fn get_build_info(&self) -> BuildInfo {
         match &self.is_compose {
             IsCompose::Compose(_) => unimplemented!(),
@@ -142,6 +137,16 @@ impl DevContainer {
                 IsImage::Image(_) => unimplemented!(),
             },
         }
+    }
+}
+
+impl std::str::FromStr for DevContainer {
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<Self> {
+        let mut s = s.to_owned();
+        json_strip_comments::strip(&mut s).map_err(Error::InvalidJsonc)?;
+        serde_json::from_str::<Self>(&s).map_err(Error::InvalidJson)
     }
 }
 

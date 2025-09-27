@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 pub mod devcontainer;
 pub mod extension;
 pub mod feature;
@@ -15,8 +17,8 @@ pub type Result<T> = std::result::Result<T, Error>;
 pub fn build(workspace: std::path::PathBuf, config: Option<std::path::PathBuf>) -> Result<()> {
     let config = devcontainer::find_config(&workspace, config.as_ref())?;
 
-    let mut s = std::fs::read_to_string(&config.path).unwrap();
-    let devcontainer = devcontainer::DevContainer::from_str(&mut s)?;
+    let s = std::fs::read_to_string(&config.path).unwrap();
+    let devcontainer = devcontainer::DevContainer::from_str(&s)?;
 
     let abs_config = config.path.parent().unwrap().canonicalize().unwrap();
     let abs_dotdev = devcontainer::find_dotdev(&config)?.canonicalize().unwrap();

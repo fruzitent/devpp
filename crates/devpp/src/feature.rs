@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 pub mod generated {
     // @see: https://raw.githubusercontent.com/devcontainers/spec/113500f4125e0f14c9293adf4d8d94a861e0ec11/schemas/devContainerFeature.schema.json
     typify::import_types!("./src/feature.schema.json");
@@ -96,9 +98,12 @@ pub struct Feature {
     pub inner: generated::Feature,
 }
 
-impl Feature {
-    pub fn from_str(s: &mut str) -> Result<Self> {
-        json_strip_comments::strip(s).map_err(Error::InvalidJsonc)?;
+impl std::str::FromStr for Feature {
+    type Err = Error;
+
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        let mut s = s.to_owned();
+        json_strip_comments::strip(&mut s).map_err(Error::InvalidJsonc)?;
         serde_json::from_str::<Self>(&s).map_err(Error::InvalidJson)
     }
 }
@@ -124,8 +129,8 @@ impl FeatureValid {
             });
         }
 
-        let mut s = std::fs::read_to_string(metadata_path).unwrap();
-        let feature = Feature::from_str(&mut s)?;
+        let s = std::fs::read_to_string(metadata_path).unwrap();
+        let feature = Feature::from_str(&s)?;
 
         let name = abs_feature.iter().next_back().unwrap();
         let id = &feature.inner.id;
