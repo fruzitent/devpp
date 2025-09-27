@@ -1,7 +1,7 @@
 pub mod args;
 
 fn main() {
-    let args = args::Args::new();
+    let args = args::Args::default();
     match args.command {
         args::Commands::Build { config, workspace } => {
             if let Err(error) = devpp::build(workspace, config) {

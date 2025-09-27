@@ -25,8 +25,8 @@ pub struct Args {
     pub command: Commands,
 }
 
-impl Args {
-    pub fn new() -> Self {
+impl Default for Args {
+    fn default() -> Self {
         clap::Parser::parse()
     }
 }
