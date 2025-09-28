@@ -1,0 +1,23 @@
+{
+  "$help": "https://containers.dev/implementors/json_reference",
+  "$schema": "https://raw.githubusercontent.com/devcontainers/spec/refs/heads/main/schemas/devContainer.schema.json",
+  "customizations": {
+    "vscode": {
+      "extensions": ["EditorConfig.EditorConfig", "esbenp.prettier-vscode", "FelixZeller.markdown-oxide"],
+      "settings": {
+        "[json][jsonc]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        }
+      }
+    }
+  },
+  "features": {},
+  // @see: https://mcr.microsoft.com/artifact/mar/devcontainers/base/tags
+  "image": "mcr.microsoft.com/devcontainers/base:2.0.4-ubuntu-24.04@sha256:ad92cae7c25cafb1e7bb5aa7520b81be85fac022ea92e404b94a11127631fae3",
+  // TODO: https://github.com/microsoft/vscode-remote-release/issues/4646
+  "runArgs": ["--security-opt=label=disable"],
+  // TODO: https://github.com/devcontainers/spec/issues/25
+  // TODO: https://github.com/devcontainers/spec/issues/479
+  "remoteUser": "root",
+  "updateRemoteUserUID": false
+}
