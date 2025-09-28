@@ -1,0 +1,16 @@
+#:schema https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/cargo.json
+# @help: https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[workspace]
+default-members = ["./crates/devpp/"]
+members = ["./crates/devpp/"]
+resolver = "3"
+
+[workspace.dependencies]
+
+[workspace.package]
+authors = ["fruzitent <fruzit@gmail.com>"]
+description = "The Development Containers Preprocessor"
+license-file = "license.md"
+readme = "readme.md"
+repository = "git+https://github.com/fruzitent/devpp.git"

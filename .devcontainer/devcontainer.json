@@ -11,7 +11,13 @@
       }
     }
   },
-  "features": {},
+  "features": {
+    // @see: https://github.com/devcontainers/features/pkgs/container/features/rust/versions
+    "ghcr.io/devcontainers/features/rust:1.5.0": {
+      // @see: https://github.com/rust-lang/rust/releases
+      "version": "1.90.0"
+    }
+  },
   // @see: https://mcr.microsoft.com/artifact/mar/devcontainers/base/tags
   "image": "mcr.microsoft.com/devcontainers/base:2.0.4-ubuntu-24.04@sha256:ad92cae7c25cafb1e7bb5aa7520b81be85fac022ea92e404b94a11127631fae3",
   // TODO: https://github.com/microsoft/vscode-remote-release/issues/4646

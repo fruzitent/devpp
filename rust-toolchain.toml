@@ -1,0 +1,9 @@
+#:schema https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/rust-toolchain.json
+# @help: https://rust-lang.github.io/rustup/overrides.html#the-toolchain-file
+
+[toolchain]
+# @see: https://github.com/rust-lang/rust/releases
+channel = "1.90.0"
+components = []
+profile = "minimal"
+targets = []
