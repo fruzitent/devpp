@@ -122,6 +122,18 @@ RUN \
     --mount=type=cache,target=/tmp/rust/,sharing=locked \
     sh "/features/src/rust/install.sh"
 
+FROM base AS feature-shellcheck
+
+# @see: https://github.com/koalaman/shellcheck/releases
+ARG VERSION="v0.11.0"
+
+ENV PATH="/opt/shellcheck/bin:${PATH}"
+
+RUN \
+    --mount=type=bind,source=./features/src/shellcheck/,target=/features/src/shellcheck/ \
+    --mount=type=cache,target=/tmp/shellcheck/,sharing=locked \
+    sh "/features/src/shellcheck/install.sh"
+
 FROM base AS feature-taplo
 
 # @see: https://github.com/tamasfe/taplo/releases
@@ -204,6 +216,14 @@ RUN \
     --mount=type=bind,source=./features/src/rust/,target=/features/src/rust/ \
     --mount=type=cache,target=/tmp/rust/,sharing=locked \
     sh "/features/src/rust/configure.sh"
+
+# @see: [acquire.sh](https://github.com/devcontainers/spec/issues/21)
+ENV PATH="/opt/shellcheck/bin:${PATH}"
+COPY --from=feature-shellcheck --link "/opt/shellcheck/" "/opt/shellcheck/"
+RUN \
+    --mount=type=bind,source=./features/src/shellcheck/,target=/features/src/shellcheck/ \
+    --mount=type=cache,target=/tmp/shellcheck/,sharing=locked \
+    sh "/features/src/shellcheck/configure.sh"
 
 # @see: [acquire.sh](https://github.com/devcontainers/spec/issues/21)
 ENV PATH="/opt/taplo/bin:${PATH}"

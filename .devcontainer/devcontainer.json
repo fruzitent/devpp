@@ -45,6 +45,11 @@
       // @see: https://github.com/rust-lang/rustup/tags
       "version": "1.28.2"
     },
+    // @see: https://github.com/fruzitent/devcontainer-features/pkgs/container/devcontainer-features/shellcheck/versions
+    "./features/src/shellcheck/": {
+      // @see: https://github.com/koalaman/shellcheck/releases
+      "version": "v0.11.0"
+    },
     // @see: https://github.com/fruzitent/devcontainer-features/pkgs/container/devcontainer-features/taplo/versions
     "./features/src/taplo/": {
       // @see: https://github.com/tamasfe/taplo/releases
