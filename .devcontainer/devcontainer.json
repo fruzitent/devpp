@@ -8,7 +8,7 @@
   },
   "customizations": {
     "vscode": {
-      "extensions": ["FelixZeller.markdown-oxide"],
+      "extensions": [],
       "settings": {}
     }
   },
@@ -24,6 +24,11 @@
     "./features/src/editorconfig/": {
       // @see: https://npmjs.com/package/editorconfig?activeTab=versions
       "version": "3.0.1"
+    },
+    // @see: https://github.com/fruzitent/devcontainer-features/pkgs/container/devcontainer-features/markdown-oxide/versions
+    "./features/src/markdown-oxide/": {
+      // @see: https://github.com/Feel-ix-343/markdown-oxide/releases
+      "version": "v0.25.8"
     },
     // @see: https://github.com/fruzitent/devcontainer-features/pkgs/container/devcontainer-features/node/versions
     "./features/src/node/": {

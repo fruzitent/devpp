@@ -73,6 +73,18 @@ RUN \
     --mount=type=cache,target=/root/.npm/,sharing=locked \
     sh "/features/src/editorconfig/install.sh"
 
+FROM base AS feature-markdown-oxide
+
+# @see: https://github.com/Feel-ix-343/markdown-oxide/releases
+ARG VERSION="v0.25.8"
+
+ENV PATH="/opt/markdown-oxide/bin:${PATH}"
+
+RUN \
+    --mount=type=bind,source=./features/src/markdown-oxide/,target=/features/src/markdown-oxide/ \
+    --mount=type=cache,target=/tmp/markdown-oxide/,sharing=locked \
+    sh "/features/src/markdown-oxide/install.sh"
+
 FROM base AS feature-prettier
 
 # @see: [acquire.sh](https://github.com/devcontainers/spec/issues/21)
@@ -126,6 +138,14 @@ RUN \
     --mount=type=bind,source=./features/src/editorconfig/,target=/features/src/editorconfig/ \
     --mount=type=cache,target=/root/.npm/,sharing=locked \
     sh "/features/src/editorconfig/configure.sh"
+
+# @see: [acquire.sh](https://github.com/devcontainers/spec/issues/21)
+ENV PATH="/opt/markdown-oxide/bin:${PATH}"
+COPY --from=feature-markdown-oxide --link "/opt/markdown-oxide/" "/opt/markdown-oxide/"
+RUN \
+    --mount=type=bind,source=./features/src/markdown-oxide/,target=/features/src/markdown-oxide/ \
+    --mount=type=cache,target=/tmp/markdown-oxide/,sharing=locked \
+    sh "/features/src/markdown-oxide/configure.sh"
 
 # @see: [acquire.sh](https://github.com/devcontainers/spec/issues/21)
 ENV NODE_PATH="/opt/prettier/node_modules:${NODE_PATH}"
