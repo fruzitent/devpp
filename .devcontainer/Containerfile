@@ -13,5 +13,29 @@ RUN \
     --mount=type=cache,target=/var/lib/apt/,sharing=locked \
     sh "/features/src/common-utils/install.sh"
 
+FROM base AS feature-node
+
+# @see: https://nodejs.org/en/download/archive/current
+ARG VERSION="v24.9.0"
+
+ENV NODE_PATH="/usr/local/lib/node_modules"
+ENV NPM_CONFIG_CACHE="/root/.npm/"
+ENV PATH="/opt/node/bin:${PATH}"
+
+RUN \
+    --mount=type=bind,source=./features/src/node/,target=/features/src/node/ \
+    --mount=type=cache,target=/tmp/node/,sharing=locked \
+    sh "/features/src/node/install.sh"
+
 # @see: https://mcr.microsoft.com/artifact/mar/devcontainers/base/tags
 FROM mcr.microsoft.com/devcontainers/base:2.0.4-ubuntu-24.04@sha256:ad92cae7c25cafb1e7bb5aa7520b81be85fac022ea92e404b94a11127631fae3 AS devcontainer
+
+# @see: [acquire.sh](https://github.com/devcontainers/spec/issues/21)
+ENV NODE_PATH="/usr/local/lib/node_modules"
+ENV NPM_CONFIG_CACHE="/root/.npm/"
+ENV PATH="/opt/node/bin:${PATH}"
+COPY --from=feature-node --link "/opt/node/" "/opt/node/"
+RUN \
+    --mount=type=bind,source=./features/src/node/,target=/features/src/node/ \
+    --mount=type=cache,target=/tmp/node/,sharing=locked \
+    sh "/features/src/node/configure.sh"

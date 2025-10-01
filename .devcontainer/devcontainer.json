@@ -19,6 +19,11 @@
   "features": {
     // @see: https://github.com/fruzitent/devcontainer-features/pkgs/container/devcontainer-features/common-utils/versions
     "./features/src/common-utils/": {},
+    // @see: https://github.com/fruzitent/devcontainer-features/pkgs/container/devcontainer-features/node/versions
+    "./features/src/node/": {
+      // @see: https://nodejs.org/en/download/archive/current
+      "version": "v24.9.0"
+    },
     // @see: https://github.com/devcontainers/features/pkgs/container/features/rust/versions
     "ghcr.io/devcontainers/features/rust:1.5.0": {
       // @see: https://github.com/rust-lang/rust/releases
