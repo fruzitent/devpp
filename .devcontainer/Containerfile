@@ -1,0 +1,17 @@
+# syntax=docker.io/docker/dockerfile:1.18.0-labs@sha256:79cdc14e1c220efb546ad14a8ebc816e3277cd72d27195ced5bebdd226dd1025
+# TODO: https://github.com/containers/buildah/issues/4211
+
+# @help: https://docs.docker.com/reference/dockerfile
+# @help: https://github.com/containers/common/blob/main/docs/Containerfile.5.md
+
+# @see: https://hub.docker.com/_/ubuntu/tags
+FROM --platform=${BUILDPLATFORM} docker.io/library/ubuntu:25.10@sha256:a61c057b4f69200ecf031519a20db79b8683837ba1dc2a59458d333eb75b174d AS base
+
+RUN \
+    --mount=type=bind,source=./features/src/common-utils/,target=/features/src/common-utils/ \
+    --mount=type=cache,target=/var/cache/apt/,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt/,sharing=locked \
+    sh "/features/src/common-utils/install.sh"
+
+# @see: https://mcr.microsoft.com/artifact/mar/devcontainers/base/tags
+FROM mcr.microsoft.com/devcontainers/base:2.0.4-ubuntu-24.04@sha256:ad92cae7c25cafb1e7bb5aa7520b81be85fac022ea92e404b94a11127631fae3 AS devcontainer

@@ -1,0 +1,5 @@
+# @help: https://git-scm.com/docs/git-submodule
+
+[submodule ".devcontainer/features"]
+path = ".devcontainer/features"
+url = "https://github.com/fruzitent/devcontainer-features"
