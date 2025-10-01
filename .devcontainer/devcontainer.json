@@ -40,6 +40,11 @@
       // @see: https://npmjs.com/package/prettier?activeTab=versions
       "version": "3.6.2"
     },
+    // @see: https://github.com/fruzitent/devcontainer-features/pkgs/container/devcontainer-features/taplo/versions
+    "./features/src/taplo/": {
+      // @see: https://github.com/tamasfe/taplo/releases
+      "version": "0.10.0"
+    },
     // @see: https://github.com/devcontainers/features/pkgs/container/features/rust/versions
     "ghcr.io/devcontainers/features/rust:1.5.0": {
       // @see: https://github.com/rust-lang/rust/releases

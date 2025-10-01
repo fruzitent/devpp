@@ -108,6 +108,18 @@ RUN \
     --mount=type=cache,target=/root/.npm/,sharing=locked \
     sh "/features/src/prettier/install.sh"
 
+FROM base AS feature-taplo
+
+# @see: https://github.com/tamasfe/taplo/releases
+ARG VERSION="0.10.0"
+
+ENV PATH="/opt/taplo/bin:${PATH}"
+
+RUN \
+    --mount=type=bind,source=./features/src/taplo/,target=/features/src/taplo/ \
+    --mount=type=cache,target=/tmp/taplo/,sharing=locked \
+    sh "/features/src/taplo/install.sh"
+
 # @see: https://mcr.microsoft.com/artifact/mar/devcontainers/base/tags
 FROM mcr.microsoft.com/devcontainers/base:2.0.4-ubuntu-24.04@sha256:ad92cae7c25cafb1e7bb5aa7520b81be85fac022ea92e404b94a11127631fae3 AS devcontainer
 
@@ -155,3 +167,11 @@ RUN \
     --mount=type=bind,source=./features/src/prettier/,target=/features/src/prettier/ \
     --mount=type=cache,target=/root/.npm/,sharing=locked \
     sh "/features/src/prettier/configure.sh"
+
+# @see: [acquire.sh](https://github.com/devcontainers/spec/issues/21)
+ENV PATH="/opt/taplo/bin:${PATH}"
+COPY --from=feature-taplo --link "/opt/taplo/" "/opt/taplo/"
+RUN \
+    --mount=type=bind,source=./features/src/taplo/,target=/features/src/taplo/ \
+    --mount=type=cache,target=/tmp/taplo/,sharing=locked \
+    sh "/features/src/taplo/configure.sh"
