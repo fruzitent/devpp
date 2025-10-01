@@ -45,6 +45,11 @@
       // @see: https://github.com/tamasfe/taplo/releases
       "version": "0.10.0"
     },
+    // @see: https://github.com/fruzitent/devcontainer-features/pkgs/container/devcontainer-features/zig/versions
+    "./features/src/zig/": {
+      // @see: https://ziglang.org/download
+      "version": "0.15.1"
+    },
     // @see: https://github.com/devcontainers/features/pkgs/container/features/rust/versions
     "ghcr.io/devcontainers/features/rust:1.5.0": {
       // @see: https://github.com/rust-lang/rust/releases
