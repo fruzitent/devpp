@@ -50,6 +50,11 @@
       // @see: https://github.com/koalaman/shellcheck/releases
       "version": "v0.11.0"
     },
+    // @see: https://github.com/fruzitent/devcontainer-features/pkgs/container/devcontainer-features/shfmt/versions
+    "./features/src/shfmt/": {
+      // @see: https://github.com/mvdan/sh/releases
+      "version": "v3.12.0"
+    },
     // @see: https://github.com/fruzitent/devcontainer-features/pkgs/container/devcontainer-features/taplo/versions
     "./features/src/taplo/": {
       // @see: https://github.com/tamasfe/taplo/releases
