@@ -8,12 +8,8 @@
   },
   "customizations": {
     "vscode": {
-      "extensions": ["esbenp.prettier-vscode", "FelixZeller.markdown-oxide"],
-      "settings": {
-        "[json][jsonc]": {
-          "editor.defaultFormatter": "esbenp.prettier-vscode"
-        }
-      }
+      "extensions": ["FelixZeller.markdown-oxide"],
+      "settings": {}
     }
   },
   "features": {
@@ -24,7 +20,7 @@
     },
     // @see: https://github.com/fruzitent/devcontainer-features/pkgs/container/devcontainer-features/common-utils/versions
     "./features/src/common-utils/": {},
-    // @see: https://github.com/fruzitent/devcontainer-features/pkgs/container/devcontainer-features/bash-language-server/versions
+    // @see: https://github.com/fruzitent/devcontainer-features/pkgs/container/devcontainer-features/editorconfig/versions
     "./features/src/editorconfig/": {
       // @see: https://npmjs.com/package/editorconfig?activeTab=versions
       "version": "3.0.1"
@@ -33,6 +29,11 @@
     "./features/src/node/": {
       // @see: https://nodejs.org/en/download/archive/current
       "version": "v24.9.0"
+    },
+    // @see: https://github.com/fruzitent/devcontainer-features/pkgs/container/devcontainer-features/prettier/versions
+    "./features/src/prettier/": {
+      // @see: https://npmjs.com/package/prettier?activeTab=versions
+      "version": "3.6.2"
     },
     // @see: https://github.com/devcontainers/features/pkgs/container/features/rust/versions
     "ghcr.io/devcontainers/features/rust:1.5.0": {
