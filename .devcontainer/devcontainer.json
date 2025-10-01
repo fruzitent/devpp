@@ -17,6 +17,11 @@
     }
   },
   "features": {
+    // @see: https://github.com/fruzitent/devcontainer-features/pkgs/container/devcontainer-features/bash-language-server/versions
+    "./features/src/bash-language-server/": {
+      // @see: https://npmjs.com/package/bash-language-server?activeTab=versions
+      "version": "5.6.0"
+    },
     // @see: https://github.com/fruzitent/devcontainer-features/pkgs/container/devcontainer-features/common-utils/versions
     "./features/src/common-utils/": {},
     // @see: https://github.com/fruzitent/devcontainer-features/pkgs/container/devcontainer-features/node/versions
