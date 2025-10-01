@@ -8,7 +8,7 @@
   },
   "customizations": {
     "vscode": {
-      "extensions": ["EditorConfig.EditorConfig", "esbenp.prettier-vscode", "FelixZeller.markdown-oxide"],
+      "extensions": ["esbenp.prettier-vscode", "FelixZeller.markdown-oxide"],
       "settings": {
         "[json][jsonc]": {
           "editor.defaultFormatter": "esbenp.prettier-vscode"
@@ -24,6 +24,11 @@
     },
     // @see: https://github.com/fruzitent/devcontainer-features/pkgs/container/devcontainer-features/common-utils/versions
     "./features/src/common-utils/": {},
+    // @see: https://github.com/fruzitent/devcontainer-features/pkgs/container/devcontainer-features/bash-language-server/versions
+    "./features/src/editorconfig/": {
+      // @see: https://npmjs.com/package/editorconfig?activeTab=versions
+      "version": "3.0.1"
+    },
     // @see: https://github.com/fruzitent/devcontainer-features/pkgs/container/devcontainer-features/node/versions
     "./features/src/node/": {
       // @see: https://nodejs.org/en/download/archive/current
