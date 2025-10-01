@@ -40,6 +40,11 @@
       // @see: https://npmjs.com/package/prettier?activeTab=versions
       "version": "3.6.2"
     },
+    // @see: https://github.com/fruzitent/devcontainer-features/pkgs/container/devcontainer-features/rust/versions
+    "./features/src/rust/": {
+      // @see: https://github.com/rust-lang/rustup/tags
+      "version": "1.28.2"
+    },
     // @see: https://github.com/fruzitent/devcontainer-features/pkgs/container/devcontainer-features/taplo/versions
     "./features/src/taplo/": {
       // @see: https://github.com/tamasfe/taplo/releases
@@ -49,11 +54,6 @@
     "./features/src/zig/": {
       // @see: https://ziglang.org/download
       "version": "0.15.1"
-    },
-    // @see: https://github.com/devcontainers/features/pkgs/container/features/rust/versions
-    "ghcr.io/devcontainers/features/rust:1.5.0": {
-      // @see: https://github.com/rust-lang/rust/releases
-      "version": "1.90.0"
     }
   },
   // TODO: https://github.com/microsoft/vscode-remote-release/issues/4646

@@ -108,6 +108,20 @@ RUN \
     --mount=type=cache,target=/root/.npm/,sharing=locked \
     sh "/features/src/prettier/install.sh"
 
+FROM base AS feature-rust
+
+# @see: https://github.com/rust-lang/rustup/tags
+ARG VERSION="1.28.2"
+
+ENV CARGO_HOME="/opt/rust/cargo/"
+ENV PATH="/opt/rust/cargo/bin:${PATH}"
+ENV RUSTUP_HOME="/opt/rust/rustup/"
+
+RUN \
+    --mount=type=bind,source=./features/src/rust/,target=/features/src/rust/ \
+    --mount=type=cache,target=/tmp/rust/,sharing=locked \
+    sh "/features/src/rust/install.sh"
+
 FROM base AS feature-taplo
 
 # @see: https://github.com/tamasfe/taplo/releases
@@ -180,6 +194,16 @@ RUN \
     --mount=type=bind,source=./features/src/prettier/,target=/features/src/prettier/ \
     --mount=type=cache,target=/root/.npm/,sharing=locked \
     sh "/features/src/prettier/configure.sh"
+
+# @see: [acquire.sh](https://github.com/devcontainers/spec/issues/21)
+ENV CARGO_HOME="/opt/rust/cargo/"
+ENV PATH="/opt/rust/cargo/bin:${PATH}"
+ENV RUSTUP_HOME="/opt/rust/rustup/"
+COPY --from=feature-rust --link "/opt/rust/" "/opt/rust/"
+RUN \
+    --mount=type=bind,source=./features/src/rust/,target=/features/src/rust/ \
+    --mount=type=cache,target=/tmp/rust/,sharing=locked \
+    sh "/features/src/rust/configure.sh"
 
 # @see: [acquire.sh](https://github.com/devcontainers/spec/issues/21)
 ENV PATH="/opt/taplo/bin:${PATH}"
