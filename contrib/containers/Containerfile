@@ -1,0 +1,155 @@
+# syntax=docker.io/docker/dockerfile:1.18.0-labs@sha256:79cdc14e1c220efb546ad14a8ebc816e3277cd72d27195ced5bebdd226dd1025
+# TODO: https://github.com/containers/buildah/issues/4211
+
+# @help: https://docs.docker.com/reference/dockerfile
+# @help: https://github.com/containers/common/blob/main/docs/Containerfile.5.md
+
+# @see: https://hub.docker.com/r/tonistiigi/xx/tags
+FROM --platform=${BUILDPLATFORM} docker.io/tonistiigi/xx@sha256:010d4b66aed389848b0694f91c7aaee9df59a6f20be7f5d12e53663a37bd14e2 AS xx
+
+# @see: https://hub.docker.com/_/ubuntu/tags
+FROM --platform=${BUILDPLATFORM} docker.io/library/ubuntu:25.10@sha256:a61c057b4f69200ecf031519a20db79b8683837ba1dc2a59458d333eb75b174d AS base
+
+RUN \
+    --mount=type=bind,source=./.devcontainer/features/src/common-utils/,target=/features/src/common-utils/ \
+    --mount=type=cache,target=/var/cache/apt/,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt/,sharing=locked \
+    sh "/features/src/common-utils/install.sh"
+
+FROM base AS feature-rust
+
+# @see: https://github.com/rust-lang/rustup/tags
+ARG VERSION="1.28.2"
+
+ENV CARGO_HOME="/opt/rust/cargo/"
+ENV PATH="/opt/rust/cargo/bin:${PATH}"
+ENV RUSTUP_HOME="/opt/rust/rustup/"
+
+RUN \
+    --mount=type=bind,source=./.devcontainer/features/src/rust/,target=/features/src/rust/ \
+    --mount=type=cache,target=/tmp/rust/,sharing=locked \
+    sh "/features/src/rust/install.sh"
+
+FROM base AS feature-zig
+
+# @see: https://ziglang.org/download
+ARG VERSION="0.15.1"
+ARG ZSF_PUBLIC_KEY="RWSGOq2NVecA2UPNdBUZykf1CCb147pkmdtYxgb3Ti+JO/wCYvhbAb/U"
+
+ENV PATH="/opt/zig/local/bin:/opt/zig/bin:${PATH}"
+
+RUN \
+    --mount=type=bind,source=./.devcontainer/features/src/zig/,target=/features/src/zig/ \
+    --mount=type=cache,target=/tmp/zig/,sharing=locked \
+    sh "/features/src/zig/install.sh"
+
+FROM base AS feature-cargo-zigbuild
+
+# @see: [acquire.sh](https://github.com/devcontainers/spec/issues/21)
+ENV CARGO_HOME="/opt/rust/cargo/"
+ENV PATH="/opt/rust/cargo/bin:${PATH}"
+ENV RUSTUP_HOME="/opt/rust/rustup/"
+COPY --from=feature-rust --link "/opt/rust/" "/opt/rust/"
+RUN \
+    --mount=type=bind,source=./.devcontainer/features/src/rust/,target=/features/src/rust/ \
+    --mount=type=cache,target=/tmp/rust/,sharing=locked \
+    sh "/features/src/rust/configure.sh"
+
+# @see: [acquire.sh](https://github.com/devcontainers/spec/issues/21)
+ENV PATH="/opt/zig/local/bin:/opt/zig/bin:${PATH}"
+COPY --from=feature-zig --link "/opt/zig/" "/opt/zig/"
+RUN \
+    --mount=type=bind,source=./.devcontainer/features/src/zig/,target=/features/src/zig/ \
+    --mount=type=cache,target=/tmp/zig/,sharing=locked \
+    sh "/features/src/zig/configure.sh"
+
+# @see: https://github.com/rust-cross/cargo-zigbuild/releases
+ARG VERSION="v0.20.1"
+
+ENV PATH="/opt/cargo-zigbuild/bin:${PATH}"
+
+RUN \
+    --mount=type=bind,source=./.devcontainer/features/src/cargo-zigbuild/,target=/features/src/cargo-zigbuild/ \
+    --mount=type=cache,target=/tmp/cargo-zigbuild/,sharing=locked \
+    sh "/features/src/cargo-zigbuild/install.sh"
+
+FROM base AS final
+
+# @see: [acquire.sh](https://github.com/devcontainers/spec/issues/21)
+ENV CARGO_HOME="/opt/rust/cargo/"
+ENV PATH="/opt/rust/cargo/bin:${PATH}"
+ENV RUSTUP_HOME="/opt/rust/rustup/"
+COPY --from=feature-rust --link "/opt/rust/" "/opt/rust/"
+RUN \
+    --mount=type=bind,source=./.devcontainer/features/src/rust/,target=/features/src/rust/ \
+    --mount=type=cache,target=/tmp/rust/,sharing=locked \
+    sh "/features/src/rust/configure.sh"
+
+# @see: [acquire.sh](https://github.com/devcontainers/spec/issues/21)
+ENV PATH="/opt/zig/local/bin:/opt/zig/bin:${PATH}"
+COPY --from=feature-zig --link "/opt/zig/" "/opt/zig/"
+RUN \
+    --mount=type=bind,source=./.devcontainer/features/src/zig/,target=/features/src/zig/ \
+    --mount=type=cache,target=/tmp/zig/,sharing=locked \
+    sh "/features/src/zig/configure.sh"
+
+# @see: [acquire.sh](https://github.com/devcontainers/spec/issues/21)
+ENV PATH="/opt/cargo-zigbuild/bin:${PATH}"
+COPY --from=feature-cargo-zigbuild --link "/opt/cargo-zigbuild/" "/opt/cargo-zigbuild/"
+RUN \
+    --mount=type=bind,source=./.devcontainer/features/src/cargo-zigbuild/,target=/features/src/cargo-zigbuild/ \
+    --mount=type=cache,target=/tmp/cargo-zigbuild/,sharing=locked \
+    sh "/features/src/cargo-zigbuild/configure.sh"
+
+COPY --from=xx --link "/" "/"
+RUN <<EOF
+ln --symbolic "/opt/zig/local/bin/c++" "/usr/bin/clang++"
+ln --symbolic "/opt/zig/local/bin/cc" "/usr/bin/clang"
+EOF
+
+FROM final AS deps
+
+WORKDIR "/usr/src/devpp/"
+
+COPY "./crates/devpp/Cargo.toml" "./crates/devpp/Cargo.toml"
+COPY "./Cargo.lock" "./Cargo.lock"
+COPY "./Cargo.toml" "./Cargo.toml"
+COPY "./rust-toolchain.toml" "./rust-toolchain.toml"
+
+# TODO: https://github.com/rust-lang/cargo/issues/2644
+RUN \
+    --mount=type=cache,target=/opt/rust/cargo/git/db/ \
+    --mount=type=cache,target=/opt/rust/cargo/registry/cache/ \
+    --mount=type=cache,target=/opt/rust/cargo/registry/index/ \
+<<EOF
+echo "fn main() {}" | install -D "/dev/stdin" "./crates/devpp/src/main.rs"
+cargo fetch
+EOF
+
+ARG TARGETPLATFORM
+
+RUN <<EOF
+rustup target add "$(xx-cargo --print-target-triple | sed 's/gnu/musl/')"
+EOF
+
+FROM deps AS builder
+
+COPY "./crates/" "./crates/"
+
+RUN \
+    --mount=type=cache,target=/opt/rust/cargo/git/db/ \
+    --mount=type=cache,target=/opt/rust/cargo/registry/cache/ \
+    --mount=type=cache,target=/opt/rust/cargo/registry/index/ \
+<<EOF
+cargo zigbuild --release --target "$(xx-cargo --print-target-triple | sed 's/gnu/musl/')"
+xx-verify "./target/$(xx-cargo --print-target-triple | sed 's/gnu/musl/')/release/devpp"
+mv "./target/$(xx-cargo --print-target-triple | sed 's/gnu/musl/')/release/devpp" "./target/release/devpp"
+EOF
+
+FROM scratch AS artifacts
+
+COPY --from=builder --link "/usr/src/devpp/target/release/devpp" "/devpp"
+
+FROM artifacts AS runner
+
+ENTRYPOINT ["/devpp"]
