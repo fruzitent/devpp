@@ -11,5 +11,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 pub fn build(workspace: &std::path::Path, config: Option<&std::path::Path>) -> Result<()> {
     let config = devpp_spec::devc::Config::find_config(workspace, config)?;
     dbg!(&config);
+    let dotdev = config.find_dotdev()?;
+    dbg!(&dotdev);
     Err(Error::NotImplemented)
 }

@@ -16,6 +16,10 @@ pub enum Error {
         config: std::path::PathBuf,
         entries: Vec<std::path::PathBuf>,
     },
+    #[error("the project must have a .devcontainer/ folder at the root of the project workspace folder")]
+    DotdevNotFound,
+    #[error("parent directory is not found")]
+    ParentNotFound,
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
