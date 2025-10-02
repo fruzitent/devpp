@@ -40,6 +40,19 @@ impl Config {
         }
     }
 
+    pub fn find_dotdev(&self) -> Result<std::path::PathBuf> {
+        match self.kind {
+            ConfigKind::Nested => Ok(self.path.parent().ok_or(Error::ParentNotFound)?.to_owned()),
+            ConfigKind::Plain => Err(Error::DotdevNotFound),
+            ConfigKind::Scoped => Ok(self
+                .path
+                .parent()
+                .and_then(|path| path.parent())
+                .ok_or(Error::ParentNotFound)?
+                .to_owned()),
+        }
+    }
+
     pub fn find_entries(workspace: &std::path::Path) -> Result<Vec<Config>> {
         let mut entries = vec![];
 
@@ -117,6 +130,16 @@ mod tests {
         let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/config_permission_denied");
         match Config::find_config(&root.join("workspace"), Some(&root.join("devcontainer.json"))) {
             Err(Error::ConfigPermissionDenied { .. }) => {}
+            other => panic!("{other:?}"),
+        }
+    }
+
+    #[test]
+    fn dotdev_not_found() {
+        let workspace = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/dotdev_not_found");
+        let config = Config::find_config(&workspace, None).unwrap();
+        match config.find_dotdev() {
+            Err(Error::DotdevNotFound) => {}
             other => panic!("{other:?}"),
         }
     }
