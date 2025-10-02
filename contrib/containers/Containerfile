@@ -112,6 +112,7 @@ FROM final AS deps
 WORKDIR "/usr/src/devpp/"
 
 COPY "./crates/devpp/Cargo.toml" "./crates/devpp/Cargo.toml"
+COPY "./crates/devpp-spec/Cargo.toml" "./crates/devpp-spec/Cargo.toml"
 COPY "./Cargo.lock" "./Cargo.lock"
 COPY "./Cargo.toml" "./Cargo.toml"
 COPY "./rust-toolchain.toml" "./rust-toolchain.toml"
@@ -123,6 +124,7 @@ RUN \
     --mount=type=cache,target=/opt/rust/cargo/registry/index/ \
 <<EOF
 echo "fn main() {}" | install -D "/dev/stdin" "./crates/devpp/src/main.rs"
+install -D "/dev/null" "./crates/devpp-spec/src/lib.rs"
 cargo fetch
 EOF
 

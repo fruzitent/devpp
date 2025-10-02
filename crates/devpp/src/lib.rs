@@ -1,11 +1,15 @@
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
+    #[error(transparent)]
+    DevppSpec(#[from] devpp_spec::Error),
     #[error("not implemented")]
     NotImplemented,
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
 
-pub fn build(_workspace: &std::path::Path, _config: Option<&std::path::Path>) -> Result<()> {
+pub fn build(workspace: &std::path::Path, config: Option<&std::path::Path>) -> Result<()> {
+    let config = devpp_spec::devc::Config::find_config(workspace, config)?;
+    dbg!(&config);
     Err(Error::NotImplemented)
 }
