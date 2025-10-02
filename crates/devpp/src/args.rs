@@ -1,3 +1,5 @@
+use clap::CommandFactory;
+
 pub const STYLE_ERROR: anstyle::Style = anstyle::AnsiColor::Red.on_default().effects(anstyle::Effects::BOLD);
 pub const STYLE_HEADER: anstyle::Style = anstyle::AnsiColor::Green.on_default().effects(anstyle::Effects::BOLD);
 pub const STYLE_INVALID: anstyle::Style = anstyle::AnsiColor::Yellow.on_default().effects(anstyle::Effects::BOLD);
@@ -30,4 +32,11 @@ impl Default for Args {
 }
 
 #[derive(clap::Subcommand)]
-pub enum CommandKind {}
+pub enum CommandKind {
+    /// Generate tab-completion scripts for your shell
+    Completion { shell: clap_complete::Shell },
+}
+
+pub fn generate_shell_completion<G: clap_complete::Generator>(generator: G) {
+    clap_complete::generate(generator, &mut Args::command(), "devpp", &mut std::io::stdout())
+}
