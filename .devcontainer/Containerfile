@@ -50,6 +50,18 @@ RUN \
     --mount=type=cache,target=/root/.npm/,sharing=locked \
     sh "/features/src/bash-language-server/install.sh"
 
+FROM base AS feature-docker-language-server
+
+# @see: https://github.com/docker/docker-language-server/releases
+ARG VERSION="v0.18.0"
+
+ENV PATH="/opt/docker-language-server/bin:${PATH}"
+
+RUN \
+    --mount=type=bind,source=./features/src/docker-language-server/,target=/features/src/docker-language-server/ \
+    --mount=type=cache,target=/tmp/docker-language-server/,sharing=locked \
+    sh "/features/src/docker-language-server/install.sh"
+
 FROM base AS feature-dockerfile-language-server
 
 # @see: [acquire.sh](https://github.com/devcontainers/spec/issues/21)
@@ -215,6 +227,14 @@ RUN \
     --mount=type=bind,source=./features/src/bash-language-server/,target=/features/src/bash-language-server/ \
     --mount=type=cache,target=/root/.npm/,sharing=locked \
     sh "/features/src/bash-language-server/configure.sh"
+
+# @see: [acquire.sh](https://github.com/devcontainers/spec/issues/21)
+ENV PATH="/opt/docker-language-server/bin:${PATH}"
+COPY --from=feature-docker-language-server --link "/opt/docker-language-server/" "/opt/docker-language-server/"
+RUN \
+    --mount=type=bind,source=./features/src/docker-language-server/,target=/features/src/docker-language-server/ \
+    --mount=type=cache,target=/tmp/docker-language-server/,sharing=locked \
+    sh "/features/src/docker-language-server/configure.sh"
 
 # @see: [acquire.sh](https://github.com/devcontainers/spec/issues/21)
 ENV NODE_PATH="/opt/dockerfile-language-server/node_modules:${NODE_PATH}"
