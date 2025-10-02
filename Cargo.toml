@@ -3,10 +3,11 @@
 
 [workspace]
 default-members = ["./crates/devpp/"]
-members = ["./crates/devpp/"]
+members = ["./crates/devpp/", "./crates/devpp-spec/"]
 resolver = "3"
 
 [workspace.dependencies]
+devpp-spec = { path = "./crates/devpp-spec/" }
 
 [workspace.package]
 authors = ["fruzitent <fruzit@gmail.com>"]

@@ -120,9 +120,17 @@ dependencies = [
  "anstyle",
  "clap",
  "clap_complete",
+ "devpp-spec",
  "thiserror",
  "tracing",
  "tracing-subscriber",
+]
+
+[[package]]
+name = "devpp-spec"
+version = "0.0.0"
+dependencies = [
+ "thiserror",
 ]
 
 [[package]]
