@@ -1,0 +1,23 @@
+diff --git a/devc.schema.json b/devc.schema.json
+index 0000000..0000000 100644
+--- a/devc.schema.json
++++ b/devc.schema.json
+@@ -451,18 +451,6 @@
+ 						},
+ 						"gpu": {
+ 							"oneOf": [
+-								{
+-									"type": [
+-										"boolean",
+-										"string"
+-									],
+-									"enum": [
+-										true,
+-										false,
+-										"optional"
+-									],
+-									"description": "Indicates whether a GPU is required. The string \"optional\" indicates that a GPU is optional. An object value can be used to configure more detailed requirements."
+-								},
+ 								{
+ 									"type": "object",
+ 									"properties": {

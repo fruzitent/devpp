@@ -1,6 +1,10 @@
 use crate::Error;
 use crate::Result;
 
+pub mod generated {
+    include!(concat!(env!("OUT_DIR"), "/devc.rs"));
+}
+
 #[derive(Clone, Debug)]
 pub struct Config {
     pub kind: ConfigKind,
