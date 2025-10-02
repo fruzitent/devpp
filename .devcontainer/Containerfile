@@ -27,6 +27,33 @@ RUN \
     --mount=type=cache,target=/tmp/node/,sharing=locked \
     sh "/features/src/node/install.sh"
 
+FROM base AS feature-rust
+
+# @see: https://github.com/rust-lang/rustup/tags
+ARG VERSION="1.28.2"
+
+ENV CARGO_HOME="/opt/rust/cargo/"
+ENV PATH="/opt/rust/cargo/bin:${PATH}"
+ENV RUSTUP_HOME="/opt/rust/rustup/"
+
+RUN \
+    --mount=type=bind,source=./features/src/rust/,target=/features/src/rust/ \
+    --mount=type=cache,target=/tmp/rust/,sharing=locked \
+    sh "/features/src/rust/install.sh"
+
+FROM base AS feature-zig
+
+# @see: https://ziglang.org/download
+ARG VERSION="0.15.1"
+ARG ZSF_PUBLIC_KEY="RWSGOq2NVecA2UPNdBUZykf1CCb147pkmdtYxgb3Ti+JO/wCYvhbAb/U"
+
+ENV PATH="/opt/zig/local/bin:/opt/zig/bin:${PATH}"
+
+RUN \
+    --mount=type=bind,source=./features/src/zig/,target=/features/src/zig/ \
+    --mount=type=cache,target=/tmp/zig/,sharing=locked \
+    sh "/features/src/zig/install.sh"
+
 FROM base AS feature-bash-language-server
 
 # @see: [acquire.sh](https://github.com/devcontainers/spec/issues/21)
@@ -49,6 +76,36 @@ RUN \
     --mount=type=bind,source=./features/src/bash-language-server/,target=/features/src/bash-language-server/ \
     --mount=type=cache,target=/root/.npm/,sharing=locked \
     sh "/features/src/bash-language-server/install.sh"
+
+FROM base AS feature-cargo-zigbuild
+
+# @see: [acquire.sh](https://github.com/devcontainers/spec/issues/21)
+ENV CARGO_HOME="/opt/rust/cargo/"
+ENV PATH="/opt/rust/cargo/bin:${PATH}"
+ENV RUSTUP_HOME="/opt/rust/rustup/"
+COPY --from=feature-rust --link "/opt/rust/" "/opt/rust/"
+RUN \
+    --mount=type=bind,source=./features/src/rust/,target=/features/src/rust/ \
+    --mount=type=cache,target=/tmp/rust/,sharing=locked \
+    sh "/features/src/rust/configure.sh"
+
+# @see: [acquire.sh](https://github.com/devcontainers/spec/issues/21)
+ENV PATH="/opt/zig/local/bin:/opt/zig/bin:${PATH}"
+COPY --from=feature-zig --link "/opt/zig/" "/opt/zig/"
+RUN \
+    --mount=type=bind,source=./features/src/zig/,target=/features/src/zig/ \
+    --mount=type=cache,target=/tmp/zig/,sharing=locked \
+    sh "/features/src/zig/configure.sh"
+
+# @see: https://github.com/rust-cross/cargo-zigbuild/releases
+ARG VERSION="v0.20.1"
+
+ENV PATH="/opt/cargo-zigbuild/bin:${PATH}"
+
+RUN \
+    --mount=type=bind,source=./features/src/cargo-zigbuild/,target=/features/src/cargo-zigbuild/ \
+    --mount=type=cache,target=/tmp/cargo-zigbuild/,sharing=locked \
+    sh "/features/src/cargo-zigbuild/install.sh"
 
 FROM base AS feature-docker-language-server
 
@@ -143,20 +200,6 @@ RUN \
     --mount=type=cache,target=/root/.npm/,sharing=locked \
     sh "/features/src/prettier/install.sh"
 
-FROM base AS feature-rust
-
-# @see: https://github.com/rust-lang/rustup/tags
-ARG VERSION="1.28.2"
-
-ENV CARGO_HOME="/opt/rust/cargo/"
-ENV PATH="/opt/rust/cargo/bin:${PATH}"
-ENV RUSTUP_HOME="/opt/rust/rustup/"
-
-RUN \
-    --mount=type=bind,source=./features/src/rust/,target=/features/src/rust/ \
-    --mount=type=cache,target=/tmp/rust/,sharing=locked \
-    sh "/features/src/rust/install.sh"
-
 FROM base AS feature-shellcheck
 
 # @see: https://github.com/koalaman/shellcheck/releases
@@ -193,19 +236,6 @@ RUN \
     --mount=type=cache,target=/tmp/taplo/,sharing=locked \
     sh "/features/src/taplo/install.sh"
 
-FROM base AS feature-zig
-
-# @see: https://ziglang.org/download
-ARG VERSION="0.15.1"
-ARG ZSF_PUBLIC_KEY="RWSGOq2NVecA2UPNdBUZykf1CCb147pkmdtYxgb3Ti+JO/wCYvhbAb/U"
-
-ENV PATH="/opt/zig/local/bin:/opt/zig/bin:${PATH}"
-
-RUN \
-    --mount=type=bind,source=./features/src/zig/,target=/features/src/zig/ \
-    --mount=type=cache,target=/tmp/zig/,sharing=locked \
-    sh "/features/src/zig/install.sh"
-
 # @see: https://mcr.microsoft.com/artifact/mar/devcontainers/base/tags
 FROM mcr.microsoft.com/devcontainers/base:2.0.4-ubuntu-24.04@sha256:ad92cae7c25cafb1e7bb5aa7520b81be85fac022ea92e404b94a11127631fae3 AS devcontainer
 
@@ -220,6 +250,24 @@ RUN \
     sh "/features/src/node/configure.sh"
 
 # @see: [acquire.sh](https://github.com/devcontainers/spec/issues/21)
+ENV CARGO_HOME="/opt/rust/cargo/"
+ENV PATH="/opt/rust/cargo/bin:${PATH}"
+ENV RUSTUP_HOME="/opt/rust/rustup/"
+COPY --from=feature-rust --link "/opt/rust/" "/opt/rust/"
+RUN \
+    --mount=type=bind,source=./features/src/rust/,target=/features/src/rust/ \
+    --mount=type=cache,target=/tmp/rust/,sharing=locked \
+    sh "/features/src/rust/configure.sh"
+
+# @see: [acquire.sh](https://github.com/devcontainers/spec/issues/21)
+ENV PATH="/opt/zig/local/bin:/opt/zig/bin:${PATH}"
+COPY --from=feature-zig --link "/opt/zig/" "/opt/zig/"
+RUN \
+    --mount=type=bind,source=./features/src/zig/,target=/features/src/zig/ \
+    --mount=type=cache,target=/tmp/zig/,sharing=locked \
+    sh "/features/src/zig/configure.sh"
+
+# @see: [acquire.sh](https://github.com/devcontainers/spec/issues/21)
 ENV NODE_PATH="/opt/bash-language-server/node_modules:${NODE_PATH}"
 ENV PATH="/opt/bash-language-server/node_modules/.bin:${PATH}"
 COPY --from=feature-bash-language-server --link "/opt/bash-language-server/" "/opt/bash-language-server/"
@@ -227,6 +275,14 @@ RUN \
     --mount=type=bind,source=./features/src/bash-language-server/,target=/features/src/bash-language-server/ \
     --mount=type=cache,target=/root/.npm/,sharing=locked \
     sh "/features/src/bash-language-server/configure.sh"
+
+# @see: [acquire.sh](https://github.com/devcontainers/spec/issues/21)
+ENV PATH="/opt/cargo-zigbuild/bin:${PATH}"
+COPY --from=feature-cargo-zigbuild --link "/opt/cargo-zigbuild/" "/opt/cargo-zigbuild/"
+RUN \
+    --mount=type=bind,source=./features/src/cargo-zigbuild/,target=/features/src/cargo-zigbuild/ \
+    --mount=type=cache,target=/tmp/cargo-zigbuild/,sharing=locked \
+    sh "/features/src/cargo-zigbuild/configure.sh"
 
 # @see: [acquire.sh](https://github.com/devcontainers/spec/issues/21)
 ENV PATH="/opt/docker-language-server/bin:${PATH}"
@@ -272,16 +328,6 @@ RUN \
     sh "/features/src/prettier/configure.sh"
 
 # @see: [acquire.sh](https://github.com/devcontainers/spec/issues/21)
-ENV CARGO_HOME="/opt/rust/cargo/"
-ENV PATH="/opt/rust/cargo/bin:${PATH}"
-ENV RUSTUP_HOME="/opt/rust/rustup/"
-COPY --from=feature-rust --link "/opt/rust/" "/opt/rust/"
-RUN \
-    --mount=type=bind,source=./features/src/rust/,target=/features/src/rust/ \
-    --mount=type=cache,target=/tmp/rust/,sharing=locked \
-    sh "/features/src/rust/configure.sh"
-
-# @see: [acquire.sh](https://github.com/devcontainers/spec/issues/21)
 ENV PATH="/opt/shellcheck/bin:${PATH}"
 COPY --from=feature-shellcheck --link "/opt/shellcheck/" "/opt/shellcheck/"
 RUN \
@@ -304,11 +350,3 @@ RUN \
     --mount=type=bind,source=./features/src/taplo/,target=/features/src/taplo/ \
     --mount=type=cache,target=/tmp/taplo/,sharing=locked \
     sh "/features/src/taplo/configure.sh"
-
-# @see: [acquire.sh](https://github.com/devcontainers/spec/issues/21)
-ENV PATH="/opt/zig/local/bin:/opt/zig/bin:${PATH}"
-COPY --from=feature-zig --link "/opt/zig/" "/opt/zig/"
-RUN \
-    --mount=type=bind,source=./features/src/zig/,target=/features/src/zig/ \
-    --mount=type=cache,target=/tmp/zig/,sharing=locked \
-    sh "/features/src/zig/configure.sh"
