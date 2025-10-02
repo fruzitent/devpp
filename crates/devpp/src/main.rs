@@ -1,3 +1,4 @@
 fn main() {
-    println!("Hello, world!");
+    tracing_subscriber::fmt::init();
+    tracing::info!("Hello, world!");
 }
