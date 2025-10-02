@@ -50,6 +50,29 @@ RUN \
     --mount=type=cache,target=/root/.npm/,sharing=locked \
     sh "/features/src/bash-language-server/install.sh"
 
+FROM base AS feature-dockerfile-language-server
+
+# @see: [acquire.sh](https://github.com/devcontainers/spec/issues/21)
+ENV NODE_PATH="/usr/local/lib/node_modules"
+ENV NPM_CONFIG_CACHE="/root/.npm/"
+ENV PATH="/opt/node/bin:${PATH}"
+COPY --from=feature-node --link "/opt/node/" "/opt/node/"
+RUN \
+    --mount=type=bind,source=./features/src/node/,target=/features/src/node/ \
+    --mount=type=cache,target=/tmp/node/,sharing=locked \
+    sh "/features/src/node/configure.sh"
+
+# @see: https://npmjs.com/package/dockerfile-language-server-nodejs?activeTab=versions
+ARG VERSION="0.14.1"
+
+ENV NODE_PATH="/opt/dockerfile-language-server/node_modules:${NODE_PATH}"
+ENV PATH="/opt/dockerfile-language-server/node_modules/.bin:${PATH}"
+
+RUN \
+    --mount=type=bind,source=./features/src/dockerfile-language-server/,target=/features/src/dockerfile-language-server/ \
+    --mount=type=cache,target=/root/.npm/,sharing=locked \
+    sh "/features/src/dockerfile-language-server/install.sh"
+
 FROM base AS feature-editorconfig
 
 # @see: [acquire.sh](https://github.com/devcontainers/spec/issues/21)
@@ -192,6 +215,15 @@ RUN \
     --mount=type=bind,source=./features/src/bash-language-server/,target=/features/src/bash-language-server/ \
     --mount=type=cache,target=/root/.npm/,sharing=locked \
     sh "/features/src/bash-language-server/configure.sh"
+
+# @see: [acquire.sh](https://github.com/devcontainers/spec/issues/21)
+ENV NODE_PATH="/opt/dockerfile-language-server/node_modules:${NODE_PATH}"
+ENV PATH="/opt/dockerfile-language-server/node_modules/.bin:${PATH}"
+COPY --from=feature-dockerfile-language-server --link "/opt/dockerfile-language-server/" "/opt/dockerfile-language-server/"
+RUN \
+    --mount=type=bind,source=./features/src/dockerfile-language-server/,target=/features/src/dockerfile-language-server/ \
+    --mount=type=cache,target=/root/.npm/,sharing=locked \
+    sh "/features/src/dockerfile-language-server/configure.sh"
 
 # @see: [acquire.sh](https://github.com/devcontainers/spec/issues/21)
 ENV NODE_PATH="/opt/editorconfig/node_modules:${NODE_PATH}"

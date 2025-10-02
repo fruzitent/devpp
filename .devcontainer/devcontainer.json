@@ -20,6 +20,11 @@
     },
     // @see: https://github.com/fruzitent/devcontainer-features/pkgs/container/devcontainer-features/common-utils/versions
     "./features/src/common-utils/": {},
+    // @see: https://github.com/fruzitent/devcontainer-features/pkgs/container/devcontainer-features/dockerfile-language-server/versions
+    "./features/src/dockerfile-language-server/": {
+      // @see: https://npmjs.com/package/dockerfile-language-server-nodejs?activeTab=versions
+      "version": "0.14.1"
+    },
     // @see: https://github.com/fruzitent/devcontainer-features/pkgs/container/devcontainer-features/editorconfig/versions
     "./features/src/editorconfig/": {
       // @see: https://npmjs.com/package/editorconfig?activeTab=versions
