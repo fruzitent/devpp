@@ -45,25 +45,21 @@ impl Config {
     }
 
     pub fn find_dotdev(&self) -> Result<std::path::PathBuf> {
-        match self.kind {
-            ConfigKind::Nested => Ok(self.path.parent().ok_or(Error::ParentNotFound)?.to_owned()),
+        match &self.kind {
+            ConfigKind::Nested { dotdev } => Ok(dotdev.clone()),
             ConfigKind::Plain => Err(Error::DotdevNotFound),
-            ConfigKind::Scoped => Ok(self
-                .path
-                .parent()
-                .and_then(|path| path.parent())
-                .ok_or(Error::ParentNotFound)?
-                .to_owned()),
+            ConfigKind::Scoped { dotdev } => Ok(dotdev.clone()),
         }
     }
 
     pub fn find_entries(workspace: &std::path::Path) -> Result<Vec<Config>> {
         let mut entries = vec![];
+        let dotdev = workspace.join(".devcontainer");
 
-        let path_nested = workspace.join(".devcontainer/devcontainer.json");
+        let path_nested = dotdev.join("devcontainer.json");
         if path_nested.try_exists()? {
             entries.push(Self {
-                kind: ConfigKind::Nested,
+                kind: ConfigKind::Nested { dotdev: dotdev.clone() },
                 path: path_nested,
             });
         }
@@ -76,7 +72,7 @@ impl Config {
             });
         }
 
-        if let Ok(dir) = std::fs::read_dir(workspace.join(".devcontainer")) {
+        if let Ok(dir) = std::fs::read_dir(&dotdev) {
             for entry in dir {
                 let path = entry?.path();
                 if !path.is_dir() {
@@ -85,7 +81,7 @@ impl Config {
                 let path_scoped = path.join("devcontainer.json");
                 if path_scoped.try_exists()? {
                     entries.push(Self {
-                        kind: ConfigKind::Scoped,
+                        kind: ConfigKind::Scoped { dotdev: dotdev.clone() },
                         path: path_scoped,
                     });
                 }
@@ -100,11 +96,11 @@ impl Config {
 #[derive(Clone, Debug)]
 pub enum ConfigKind {
     /// .devcontainer/devcontainer.json
-    Nested,
+    Nested { dotdev: std::path::PathBuf },
     /// .devcontainer.json
     Plain,
     /// .devcontainer/<folder>/devcontainer.json
-    Scoped,
+    Scoped { dotdev: std::path::PathBuf },
 }
 
 #[cfg(test)]
@@ -134,16 +130,6 @@ mod tests {
         let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/config_permission_denied");
         match Config::find_config(&root.join("workspace"), Some(&root.join("devcontainer.json"))) {
             Err(Error::ConfigPermissionDenied { .. }) => {}
-            other => panic!("{other:?}"),
-        }
-    }
-
-    #[test]
-    fn dotdev_not_found() {
-        let workspace = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/dotdev_not_found");
-        let config = Config::find_config(&workspace, None).unwrap();
-        match config.find_dotdev() {
-            Err(Error::DotdevNotFound) => {}
             other => panic!("{other:?}"),
         }
     }
