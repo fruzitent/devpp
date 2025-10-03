@@ -137,6 +137,7 @@ name = "devpp-spec"
 version = "0.0.0"
 dependencies = [
  "diffy",
+ "json-strip-comments",
  "prettyplease",
  "regress",
  "schemars",
@@ -202,6 +203,15 @@ name = "itoa"
 version = "1.0.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4a5f13b858c8d314ee3e8f639011f7ccefe71f97f96e50151fb991f267928e2c"
+
+[[package]]
+name = "json-strip-comments"
+version = "3.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c4135b29c84322dbc3327272084360785665452213a576a991b3ac2f63148e82"
+dependencies = [
+ "memchr",
+]
 
 [[package]]
 name = "lazy_static"
