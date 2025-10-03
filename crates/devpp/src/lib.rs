@@ -2,6 +2,8 @@
 pub enum Error {
     #[error(transparent)]
     DevppSpec(#[from] devpp_spec::Error),
+    #[error(transparent)]
+    Io(#[from] std::io::Error),
     #[error("not implemented")]
     NotImplemented,
 }
@@ -13,5 +15,7 @@ pub fn build(workspace: &std::path::Path, config: Option<&std::path::Path>) -> R
     dbg!(&config);
     let dotdev = config.find_dotdev()?;
     dbg!(&dotdev);
+    let devc = devpp_spec::devc::DevContainer::new(std::fs::read_to_string(&config.path)?)?;
+    dbg!(&devc);
     Err(Error::NotImplemented)
 }

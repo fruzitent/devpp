@@ -103,6 +103,44 @@ pub enum ConfigKind {
     Scoped { dotdev: std::path::PathBuf },
 }
 
+#[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
+pub struct DevContainer {
+    #[serde(flatten)]
+    pub common: generated::DevContainerCommon,
+    #[serde(flatten)]
+    pub is_compose: IsCompose,
+}
+
+impl DevContainer {
+    pub fn new(s: impl Into<String>) -> Result<Self> {
+        let mut s = s.into();
+        json_strip_comments::strip(&mut s)?;
+        Ok(serde_json::from_str::<Self>(&s)?)
+    }
+}
+
+#[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
+#[serde(untagged)]
+pub enum IsCompose {
+    Compose(generated::ComposeContainer),
+    NonCompose(NonCompose),
+}
+
+#[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
+pub struct NonCompose {
+    #[serde(flatten)]
+    pub base: generated::NonComposeBase,
+    #[serde(flatten)]
+    pub is_image: IsImage,
+}
+
+#[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
+#[serde(untagged)]
+pub enum IsImage {
+    Dockerfile(generated::DockerfileContainer),
+    Image(generated::ImageContainer),
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
