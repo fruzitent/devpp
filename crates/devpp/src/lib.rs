@@ -17,5 +17,10 @@ pub fn build(workspace: &std::path::Path, config: Option<&std::path::Path>) -> R
     dbg!(&dotdev);
     let devc = devpp_spec::devc::DevContainer::new(std::fs::read_to_string(&config.path)?)?;
     dbg!(&devc);
+
+    for feature in devc.common.features.keys() {
+        dbg!(&feature);
+    }
+
     Err(Error::NotImplemented)
 }
