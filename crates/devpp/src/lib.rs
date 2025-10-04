@@ -21,6 +21,8 @@ pub fn build(workspace: &std::path::Path, config: Option<&std::path::Path>) -> R
     for id in devc.common.features.keys() {
         let reference = devpp_spec::feat::Reference::new(id, &config)?;
         dbg!(&reference);
+        let feature = devpp_spec::feat::Feature::new(&reference)?;
+        dbg!(&feature);
     }
 
     Err(Error::NotImplemented)

@@ -1,0 +1,13 @@
+diff --git a/crates/devpp-spec/src/feat.schema.json b/crates/devpp-spec/src/feat.schema.json
+index 9e0c31c..7546679 100644
+--- a/crates/devpp-spec/src/feat.schema.json
++++ b/crates/devpp-spec/src/feat.schema.json
+@@ -4,7 +4,7 @@
+   "description": "Development Container Features Metadata (devcontainer-feature.json). See https://containers.dev/implementors/features/ for more information.",
+   "definitions": {
+     "Feature": {
+-      "additionalProperties": false,
++      "additionalProperties": true,
+       "properties": {
+         "capAdd": {
+           "description": "Passes docker capabilities to include when creating the dev container.",
