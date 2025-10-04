@@ -48,10 +48,6 @@ pub enum Error {
 
 pub type Result<T> = std::result::Result<T, Error>;
 
-fn normalize(base: &std::path::Path, path: &std::path::Path) -> Result<std::path::PathBuf> {
-    Ok(path.canonicalize()?.strip_prefix(base.canonicalize()?)?.to_path_buf())
-}
-
 #[cfg(test)]
 mod tests {
     pub(crate) fn root(path: impl AsRef<std::path::Path>) -> std::path::PathBuf {

@@ -22,9 +22,9 @@ impl Config {
         match config {
             Some(config) => {
                 for entry in &entries {
-                    let lhs = entry.path.canonicalize()?;
-                    let rhs = config.canonicalize()?;
-                    if lhs.eq(&rhs) {
+                    let lhs = &entry.path;
+                    let rhs = &config.canonicalize()?;
+                    if lhs.eq(rhs) {
                         return Ok(entry.to_owned());
                     }
                 }
@@ -56,16 +56,16 @@ impl Config {
         let mut entries = vec![];
         let dotdev = workspace.join(".devcontainer");
 
-        let path_nested = dotdev.join("devcontainer.json");
-        if path_nested.try_exists()? {
+        if let Ok(path_nested) = dotdev.join("devcontainer.json").canonicalize() {
             entries.push(Self {
-                kind: ConfigKind::Nested { dotdev: dotdev.clone() },
+                kind: ConfigKind::Nested {
+                    dotdev: dotdev.canonicalize()?,
+                },
                 path: path_nested,
             });
         }
 
-        let path_plain = workspace.join(".devcontainer.json");
-        if path_plain.try_exists()? {
+        if let Ok(path_plain) = workspace.join(".devcontainer.json").canonicalize() {
             entries.push(Self {
                 kind: ConfigKind::Plain,
                 path: path_plain,
@@ -78,10 +78,11 @@ impl Config {
                 if !path.is_dir() {
                     continue;
                 }
-                let path_scoped = path.join("devcontainer.json");
-                if path_scoped.try_exists()? {
+                if let Ok(path_scoped) = path.join("devcontainer.json").canonicalize() {
                     entries.push(Self {
-                        kind: ConfigKind::Scoped { dotdev: dotdev.clone() },
+                        kind: ConfigKind::Scoped {
+                            dotdev: dotdev.canonicalize()?,
+                        },
                         path: path_scoped,
                     });
                 }

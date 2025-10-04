@@ -19,7 +19,7 @@ pub fn build(workspace: &std::path::Path, config: Option<&std::path::Path>) -> R
     dbg!(&devc);
 
     for id in devc.common.features.keys() {
-        let reference = devpp_spec::feat::Reference::new(id, &config, workspace)?;
+        let reference = devpp_spec::feat::Reference::new(id, &config)?;
         dbg!(&reference);
     }
 
