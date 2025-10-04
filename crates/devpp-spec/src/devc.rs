@@ -144,10 +144,11 @@ pub enum IsImage {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::tests;
 
     #[test]
     fn config_ambiguous() {
-        let workspace = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/config_ambiguous");
+        let workspace = tests::root("tests/fixtures/config_ambiguous");
         match Config::find_config(&workspace, None) {
             Err(Error::ConfigAmbiguous { .. }) => {}
             other => panic!("{other:?}"),
@@ -156,7 +157,7 @@ mod tests {
 
     #[test]
     fn config_not_found() {
-        let workspace = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/config_not_found");
+        let workspace = tests::root("tests/fixtures/config_not_found");
         match Config::find_config(&workspace, None) {
             Err(Error::ConfigNotFound) => {}
             other => panic!("{other:?}"),
@@ -165,7 +166,7 @@ mod tests {
 
     #[test]
     fn config_permission_denied() {
-        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/config_permission_denied");
+        let root = tests::root("tests/fixtures/config_permission_denied");
         match Config::find_config(&root.join("workspace"), Some(&root.join("devcontainer.json"))) {
             Err(Error::ConfigPermissionDenied { .. }) => {}
             other => panic!("{other:?}"),

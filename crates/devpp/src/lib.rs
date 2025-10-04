@@ -18,8 +18,9 @@ pub fn build(workspace: &std::path::Path, config: Option<&std::path::Path>) -> R
     let devc = devpp_spec::devc::DevContainer::new(std::fs::read_to_string(&config.path)?)?;
     dbg!(&devc);
 
-    for feature in devc.common.features.keys() {
-        dbg!(&feature);
+    for id in devc.common.features.keys() {
+        let reference = devpp_spec::feat::Reference::new(id, &config, workspace)?;
+        dbg!(&reference);
     }
 
     Err(Error::NotImplemented)
