@@ -27,6 +27,16 @@ pub enum Error {
     },
     #[error("the project must have a .devcontainer/ folder at the root of the project workspace folder")]
     DotdevNotFound,
+    #[error("the local feature's sub-folder must contain a install.sh entrypoint script: {id:?}")]
+    FeatureEntrypointNotFound { id: String },
+    #[error("the local feature's sub-folder must contain a devcontainer-feature.json file: {id:?}")]
+    FeatureMetadataNotFound { id: String },
+    #[error("the sub-folder name must match the feature's id field: {id:?} expected {expected:?}, but got {got:?}")]
+    FeatureIdMismatch {
+        expected: String,
+        got: std::ffi::OsString,
+        id: String,
+    },
     #[error("the .tgz archive file must be named devcontainer-feature-<featureId>.tgz: {id:?}")]
     ReferenceInvalidArgument { id: String },
     #[error("feature is not found: {id:?}")]

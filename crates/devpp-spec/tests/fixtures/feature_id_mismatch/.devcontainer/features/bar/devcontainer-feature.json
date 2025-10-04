@@ -1,0 +1,7 @@
+{
+  "$help": "https://containers.dev/implementors/features",
+  "$schema": "https://raw.githubusercontent.com/devcontainers/spec/refs/heads/main/schemas/devContainerFeature.schema.json",
+  "name": "foo",
+  "id": "baz",
+  "version": "0.0.0"
+}
