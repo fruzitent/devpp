@@ -1,7 +1,6 @@
 use crate::Error;
 use crate::Result;
 use crate::devc;
-use crate::normalize;
 
 #[derive(Clone, Debug)]
 pub struct Reference {
@@ -10,10 +9,10 @@ pub struct Reference {
 }
 
 impl Reference {
-    pub fn new(id: &str, config: &devc::Config, workspace: &std::path::Path) -> Result<Self> {
+    pub fn new(id: &str, config: &devc::Config) -> Result<Self> {
         Ok(Self {
             id: id.to_string(),
-            kind: ReferenceKind::new(id, config, workspace)?,
+            kind: ReferenceKind::new(id, config)?,
         })
     }
 }
@@ -32,16 +31,13 @@ pub enum ReferenceKind {
 }
 
 impl ReferenceKind {
-    pub fn new(id: &str, config: &devc::Config, workspace: &std::path::Path) -> Result<Self> {
+    pub fn new(id: &str, config: &devc::Config) -> Result<Self> {
         if std::path::Path::new(id).is_absolute() {
             return Err(Error::ReferencePathAbsolute { id: id.to_string() });
         }
 
-        let config_dir = config.path.parent().unwrap();
-        let path_feature = config_dir.join(id);
-
-        if let Ok(path) = path_feature.canonicalize() {
-            let dotdev = config.find_dotdev()?.canonicalize()?;
+        if let Ok(path) = config.path.parent().unwrap().join(id).canonicalize() {
+            let dotdev = config.find_dotdev()?;
             if !path.starts_with(&dotdev) {
                 return Err(Error::ReferencePathIllegal {
                     dotdev,
@@ -49,9 +45,7 @@ impl ReferenceKind {
                     path,
                 });
             }
-            return Ok(Self::Local {
-                path: normalize(workspace, &path_feature)?,
-            });
+            return Ok(Self::Local { path });
         }
 
         if let Ok(reference) = id.parse() {
@@ -88,7 +82,7 @@ mod tests {
         let config = devc::Config::find_config(workspace, None)?;
         let devc = devc::DevContainer::new(std::fs::read_to_string(&config.path)?)?;
         for id in devc.common.features.keys() {
-            Reference::new(id, &config, workspace)?;
+            Reference::new(id, &config)?;
         }
         Ok(())
     }
