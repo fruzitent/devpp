@@ -143,6 +143,32 @@ pub enum IsImage {
     Image(generated::ImageContainer),
 }
 
+#[derive(Clone, Debug)]
+pub struct BuildInfo<'a> {
+    pub containerfile: &'a std::path::Path,
+    pub context: &'a std::path::Path,
+    pub target: Option<&'a str>,
+}
+
+impl<'a> BuildInfo<'a> {
+    pub fn new(devc: &'a DevContainer) -> Self {
+        match &devc.is_compose {
+            IsCompose::Compose(_) => unimplemented!(),
+            IsCompose::NonCompose(non_compose) => match &non_compose.is_image {
+                IsImage::Dockerfile(dockerfile_container) => match dockerfile_container {
+                    generated::DockerfileContainer::Variant0 { build } => Self {
+                        containerfile: std::path::Path::new(&build.dockerfile),
+                        context: std::path::Path::new(build.context.as_deref().unwrap_or(".")),
+                        target: build.target.as_deref(),
+                    },
+                    generated::DockerfileContainer::Variant1 { .. } => unimplemented!(),
+                },
+                IsImage::Image(_) => unimplemented!(),
+            },
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
