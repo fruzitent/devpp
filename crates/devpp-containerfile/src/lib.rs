@@ -37,7 +37,6 @@ pub fn write_feature(
         writeln!(&mut w)?;
     }
 
-    let mut has_args = false;
     for (key, option) in &feature.inner.options {
         let default = match option {
             devpp_spec::feat::generated::FeatureOption::Variant0 { .. } => unimplemented!(),
@@ -46,24 +45,20 @@ pub fn write_feature(
         };
         let value = options.get(key).unwrap_or(default);
         writeln!(&mut w, "ARG {key}=\"{value}\"", key = key.to_uppercase())?;
-        has_args = true;
     }
-    if has_args {
+    if !feature.inner.options.is_empty() {
         writeln!(&mut w)?;
     }
 
-    let mut has_envs = false;
     for (key, value) in &feature.inner.container_env {
         writeln!(&mut w, "ENV {key}=\"{value}\"")?;
-        has_envs = true;
     }
-    if has_envs {
+    if !feature.inner.container_env.is_empty() {
         writeln!(&mut w)?;
     }
 
     let dir_name = feature.entrypoint.parent().unwrap();
     let file_name = feature.entrypoint.file_name().unwrap();
-
     writeln!(&mut w, "RUN \\")?;
     writeln!(
         &mut w,
