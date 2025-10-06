@@ -221,10 +221,19 @@ dependencies = [
  "anstyle",
  "clap",
  "clap_complete",
+ "devpp-containerfile",
  "devpp-spec",
  "thiserror",
  "tracing",
  "tracing-subscriber",
+]
+
+[[package]]
+name = "devpp-containerfile"
+version = "0.0.0"
+dependencies = [
+ "devpp-spec",
+ "thiserror",
 ]
 
 [[package]]

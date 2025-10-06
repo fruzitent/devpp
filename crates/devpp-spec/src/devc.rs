@@ -144,23 +144,31 @@ pub enum IsImage {
 }
 
 #[derive(Clone, Debug)]
-pub struct BuildInfo<'a> {
-    pub containerfile: &'a std::path::Path,
-    pub context: &'a std::path::Path,
-    pub target: Option<&'a str>,
+pub struct BuildInfo {
+    pub containerfile: std::path::PathBuf,
+    pub context: std::path::PathBuf,
+    pub target: Option<String>,
 }
 
-impl<'a> BuildInfo<'a> {
-    pub fn new(devc: &'a DevContainer) -> Self {
+impl BuildInfo {
+    pub fn new(config: &Config, devc: &DevContainer) -> Result<Self> {
+        let config_dir = config.path.parent().unwrap();
         match &devc.is_compose {
             IsCompose::Compose(_) => unimplemented!(),
             IsCompose::NonCompose(non_compose) => match &non_compose.is_image {
                 IsImage::Dockerfile(dockerfile_container) => match dockerfile_container {
-                    generated::DockerfileContainer::Variant0 { build } => Self {
-                        containerfile: std::path::Path::new(&build.dockerfile),
-                        context: std::path::Path::new(build.context.as_deref().unwrap_or(".")),
-                        target: build.target.as_deref(),
-                    },
+                    generated::DockerfileContainer::Variant0 { build } => Ok(Self {
+                        containerfile: config_dir.join(&build.dockerfile).canonicalize()?,
+                        context: {
+                            let path = std::path::Path::new(build.context.as_deref().unwrap_or("."));
+                            if path.is_relative() {
+                                config_dir.join(path).canonicalize()?
+                            } else {
+                                path.canonicalize()?
+                            }
+                        },
+                        target: build.target.clone(),
+                    }),
                     generated::DockerfileContainer::Variant1 { .. } => unimplemented!(),
                 },
                 IsImage::Image(_) => unimplemented!(),
