@@ -1,3 +1,5 @@
+use std::io::Write;
+
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error(transparent)]
@@ -29,7 +31,8 @@ pub fn build(workspace: &std::path::Path, config: Option<&std::path::Path>) -> R
         let feature = devpp_spec::feat::Feature::new(&reference)?;
         dbg!(&feature);
 
-        devpp_containerfile::write_feature(&mut std::io::stdout(), &build_info, &feature, options)?;
+        devpp_containerfile::write_feature(&mut std::io::stdout(), &build_info, &config, &devc, &feature, options)?;
+        writeln!(&mut std::io::stdout())?;
     }
 
     Err(Error::NotImplemented)
