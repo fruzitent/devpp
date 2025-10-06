@@ -6,13 +6,28 @@ pub enum Error {
     Io(#[from] std::io::Error),
     #[error(transparent)]
     Path(#[from] std::path::StripPrefixError),
+    #[error(transparent)]
+    Regex(#[from] regex::Error),
     #[error("feature {id:?} is dependent on the {dep_id:?}, which was not found in the devcontainer.json")]
     FeatureNotFound { dep_id: String, id: String },
+    #[error("target stage must be set")]
+    TargetNotFound,
 }
 
 type Result<T> = std::result::Result<T, Error>;
 
 pub const TARGET: &str = "devpp-base";
+
+pub fn write_base(mut w: impl std::io::Write, build_info: &devpp_spec::devc::BuildInfo) -> Result<()> {
+    let s = std::fs::read_to_string(&build_info.containerfile)?;
+    let re = regex::Regex::new(&format!(
+        "(?im)AS(\\s+){target}$",
+        target = build_info.target.as_ref().ok_or(Error::TargetNotFound)?,
+    ))?;
+    let s = re.replace(&s, format!("AS {TARGET}"));
+    writeln!(&mut w, "{s}")?;
+    Ok(())
+}
 
 pub fn write_feature(
     mut w: impl std::io::Write,

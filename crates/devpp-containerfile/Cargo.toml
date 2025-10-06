@@ -4,6 +4,7 @@
 [build-dependencies]
 
 [dependencies]
+regex = "1.11.3"
 thiserror = "2.0.17"
 
 devpp-spec = { workspace = true }

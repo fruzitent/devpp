@@ -36,6 +36,9 @@ pub fn build(workspace: &std::path::Path, config: Option<&std::path::Path>) -> R
         topo_sort::SortResults::Partial(_) => return Err(Error::GraphCycle),
     };
 
+    devpp_containerfile::write_base(&mut std::io::stdout(), &build_info)?;
+    writeln!(&mut std::io::stdout())?;
+
     for id in items {
         let (feature, options) = features.get(&id).unwrap();
         devpp_containerfile::write_feature(&mut std::io::stdout(), &build_info, &config, &devc, feature, options)?;
