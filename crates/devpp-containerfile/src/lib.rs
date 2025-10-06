@@ -20,7 +20,7 @@ pub fn write_feature(
     config: &devpp_spec::devc::Config,
     devc: &devpp_spec::devc::DevContainer,
     feature: &devpp_spec::feat::Feature,
-    options: &std::collections::HashMap<String, String>,
+    options: &std::collections::BTreeMap<String, String>,
 ) -> Result<()> {
     writeln!(&mut w, "FROM {TARGET} AS devpp-feature-{id}", id = feature.inner.id)?;
     writeln!(&mut w)?;
@@ -82,7 +82,7 @@ pub fn write_feature(
 pub fn write_feature_dep(
     mut w: impl std::io::Write,
     feature: &devpp_spec::feat::Feature,
-    options: &std::collections::HashMap<String, String>,
+    options: &std::collections::BTreeMap<String, String>,
 ) -> Result<()> {
     writeln!(
         &mut w,

@@ -4,8 +4,11 @@ fn generate_devc() {
     let p = std::fs::read_to_string("./src/devc.schema.json.patch").unwrap();
     let s = diffy::apply(&j, &diffy::Patch::from_str(&p).unwrap()).unwrap();
 
+    let mut settings = typify::TypeSpaceSettings::default();
+    let settings = settings.with_map_type("std::collections::BTreeMap");
+    let mut type_space = typify::TypeSpace::new(settings);
+
     let schema = serde_json::from_str::<schemars::schema::RootSchema>(&s).unwrap();
-    let mut type_space = typify::TypeSpace::new(&typify::TypeSpaceSettings::default());
     type_space.add_root_schema(schema).unwrap();
 
     let out_dir = std::path::PathBuf::from(std::env::var("OUT_DIR").unwrap());
@@ -19,8 +22,11 @@ fn generate_feat() {
     let p = std::fs::read_to_string("./src/feat.schema.json.patch").unwrap();
     let s = diffy::apply(&j, &diffy::Patch::from_str(&p).unwrap()).unwrap();
 
+    let mut settings = typify::TypeSpaceSettings::default();
+    let settings = settings.with_map_type("std::collections::BTreeMap");
+    let mut type_space = typify::TypeSpace::new(settings);
+
     let schema = serde_json::from_str::<schemars::schema::RootSchema>(&s).unwrap();
-    let mut type_space = typify::TypeSpace::new(&typify::TypeSpaceSettings::default());
     type_space.add_root_schema(schema).unwrap();
 
     let out_dir = std::path::PathBuf::from(std::env::var("OUT_DIR").unwrap());
