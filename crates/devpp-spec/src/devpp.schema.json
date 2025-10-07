@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "Mount": {
+      "additionalProperties": false,
+      "properties": {
+        "sharing": {
+          "default": "shared",
+          "description": "https://docs.docker.com/reference/dockerfile/#run---mounttypecache",
+          "enum": ["locked", "private", "shared"],
+          "type": "string"
+        },
+        "target": {
+          "description": "Mount target.",
+          "type": "string"
+        },
+        "type": {
+          "description": "Mount type.",
+          "enum": ["cache"],
+          "type": "string"
+        }
+      },
+      "required": ["target", "type"],
+      "type": "object"
+    }
+  },
+  "properties": {
+    "customizations": {
+      "description": "Tool-specific configuration. Each tool should use a JSON object subproperty with a unique name to group its customizations.",
+      "properties": {
+        "devpp": {
+          "properties": {
+            "mounts": {
+              "description": "Mount points to set up when creating the container. See Docker's documentation for the --mount option for the supported syntax.",
+              "items": {
+                "anyOf": [
+                  {
+                    "$ref": "#/definitions/Mount"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              "type": "array"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "type": "object"
+    }
+  },
+  "title": "devpp",
+  "type": "object"
+}

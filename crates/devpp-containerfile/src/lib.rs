@@ -33,6 +33,7 @@ pub fn write_feature(
     mut w: impl std::io::Write,
     build_info: &devpp_spec::devc::BuildInfo,
     config: &devpp_spec::devc::Config,
+    #[cfg(feature = "devpp")] customizations: &devpp_spec::devpp::Customizations,
     devc: &devpp_spec::devc::DevContainer,
     feature: &devpp_spec::feat::Feature,
     options: &std::collections::BTreeMap<String, String>,
@@ -80,6 +81,25 @@ pub fn write_feature(
         "--mount=type=bind,source={source},target=/features/ \\",
         source = dir_name.strip_prefix(&build_info.context)?.to_str().unwrap(),
     )?;
+
+    #[cfg(feature = "devpp")]
+    if let Some(devpp) = &customizations.0.devpp {
+        for mount in &devpp.mounts {
+            match mount {
+                devpp_spec::devpp::generated::DevppCustomizationsDevppMountsItem::Variant0(mount) => {
+                    writeln!(
+                        &mut w,
+                        "--mount=type={type_},target={target},sharing={sharing} \\",
+                        sharing = mount.sharing,
+                        target = mount.target,
+                        type_ = mount.type_,
+                    )?;
+                }
+                devpp_spec::devpp::generated::DevppCustomizationsDevppMountsItem::Variant1(_) => unimplemented!(),
+            }
+        }
+    }
+
     writeln!(
         &mut w,
         "/features/{entrypoint}",

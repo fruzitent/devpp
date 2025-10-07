@@ -12,7 +12,9 @@ devpp-spec = { workspace = true }
 [dev-dependencies]
 
 [features]
-default = []
+default = ["devpp"]
+
+devpp = ["devpp-spec/devpp"]
 
 [package]
 edition = "2024"

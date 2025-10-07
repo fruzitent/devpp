@@ -21,9 +21,10 @@ url = { version = "2.5.7", optional = true }
 [dev-dependencies]
 
 [features]
-default = []
+default = ["devpp"]
 
 artifact = ["dep:oci-spec"]
+devpp = []
 tarball = ["dep:url"]
 
 [package]

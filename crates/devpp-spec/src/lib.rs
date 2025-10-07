@@ -1,4 +1,6 @@
 pub mod devc;
+#[cfg(feature = "devpp")]
+pub mod devpp;
 pub mod feat;
 
 #[derive(Debug, thiserror::Error)]

@@ -41,7 +41,18 @@ pub fn build(workspace: &std::path::Path, config: Option<&std::path::Path>) -> R
 
     for id in items {
         let (feature, options) = features.get(&id).unwrap();
-        devpp_containerfile::write_feature(&mut std::io::stdout(), &build_info, &config, &devc, feature, options)?;
+        #[cfg(feature = "devpp")]
+        let customizations = devpp_spec::devpp::Customizations::new(feature);
+        devpp_containerfile::write_feature(
+            &mut std::io::stdout(),
+            &build_info,
+            &config,
+            #[cfg(feature = "devpp")]
+            &customizations,
+            &devc,
+            feature,
+            options,
+        )?;
         writeln!(&mut std::io::stdout())?;
     }
 

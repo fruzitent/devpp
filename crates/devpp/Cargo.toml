@@ -18,9 +18,10 @@ devpp-spec = { workspace = true }
 [dev-dependencies]
 
 [features]
-default = []
+default = ["devpp"]
 
 artifact = ["devpp-spec/artifact"]
+devpp = ["devpp-spec/devpp"]
 tarball = ["devpp-spec/tarball"]
 
 [package]
