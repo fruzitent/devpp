@@ -11,6 +11,9 @@ devpp-spec = { workspace = true }
 
 [dev-dependencies]
 
+[features]
+default = []
+
 [package]
 edition = "2024"
 name = "devpp-containerfile"

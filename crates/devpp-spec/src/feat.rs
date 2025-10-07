@@ -20,6 +20,7 @@ pub struct Feature {
 impl Feature {
     pub fn new(reference: &Reference) -> Result<Self> {
         let this = match &reference.kind {
+            #[cfg(feature = "artifact")]
             ReferenceKind::Artifact { .. } => unimplemented!(),
             // @see: https://containers.dev/implementors/features/#folder-structure
             ReferenceKind::Local { path } => {
@@ -45,6 +46,7 @@ impl Feature {
                     metadata: path_metadata,
                 }
             }
+            #[cfg(feature = "tarball")]
             ReferenceKind::Tarball { .. } => unimplemented!(),
         };
         reference.validate(&this.inner.id)?;
@@ -68,6 +70,7 @@ impl Reference {
 
     pub fn validate(&self, id: &str) -> Result<()> {
         match &self.kind {
+            #[cfg(feature = "artifact")]
             ReferenceKind::Artifact { .. } => unimplemented!(),
             ReferenceKind::Local { path } => {
                 let got = path.iter().next_back().unwrap();
@@ -79,6 +82,7 @@ impl Reference {
                     });
                 }
             }
+            #[cfg(feature = "tarball")]
             ReferenceKind::Tarball { .. } => unimplemented!(),
         };
         Ok(())
@@ -89,12 +93,14 @@ impl Reference {
 #[derive(Clone, Debug)]
 pub enum ReferenceKind {
     /// @see: https://containers.dev/implementors/features-distribution/#oci-registry
+    #[cfg(feature = "artifact")]
     Artifact {
         reference: oci_spec::distribution::Reference,
     },
     /// @see: https://containers.dev/implementors/features-distribution/#addendum-locally-referenced
     Local { path: std::path::PathBuf },
     /// @see: https://containers.dev/implementors/features-distribution/#directly-reference-tarball
+    #[cfg(feature = "tarball")]
     Tarball { url: url::Url },
 }
 
@@ -116,10 +122,12 @@ impl ReferenceKind {
             return Ok(Self::Local { path });
         }
 
+        #[cfg(feature = "artifact")]
         if let Ok(reference) = id.parse() {
             return Ok(Self::Artifact { reference });
         }
 
+        #[cfg(feature = "tarball")]
         if let Ok(url) = url::Url::parse(id) {
             if url.scheme() != "https" {
                 return Err(Error::ReferenceSchemeMismatch { id: id.to_string() });
@@ -192,6 +200,7 @@ mod tests {
         Ok(())
     }
 
+    #[cfg(feature = "tarball")]
     #[test]
     fn reference_invalid_argument() {
         let workspace = tests::root("tests/fixtures/reference_invalid_argument");
@@ -237,6 +246,7 @@ mod tests {
         }
     }
 
+    #[cfg(feature = "tarball")]
     #[test]
     fn reference_scheme_mismatch() {
         let workspace = tests::root("tests/fixtures/reference_scheme_mismatch");

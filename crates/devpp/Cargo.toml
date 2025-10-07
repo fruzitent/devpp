@@ -17,6 +17,12 @@ devpp-spec = { workspace = true }
 
 [dev-dependencies]
 
+[features]
+default = []
+
+artifact = ["devpp-spec/artifact"]
+tarball = ["devpp-spec/tarball"]
+
 [package]
 edition = "2024"
 name = "devpp"

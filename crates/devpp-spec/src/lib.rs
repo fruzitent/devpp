@@ -5,12 +5,14 @@ pub mod feat;
 pub enum Error {
     #[error(transparent)]
     Io(#[from] std::io::Error),
+    #[cfg(feature = "artifact")]
     #[error(transparent)]
     Oci(#[from] oci_spec::distribution::ParseError),
     #[error(transparent)]
     Path(#[from] std::path::StripPrefixError),
     #[error(transparent)]
     SerdeJson(#[from] serde_json::Error),
+    #[cfg(feature = "tarball")]
     #[error(transparent)]
     Url(#[from] url::ParseError),
     #[error("config is not specified, found within search path {entries:?}")]
@@ -37,6 +39,7 @@ pub enum Error {
         got: std::ffi::OsString,
         id: String,
     },
+    #[cfg(feature = "tarball")]
     #[error("the .tgz archive file must be named devcontainer-feature-<featureId>.tgz: {id:?}")]
     ReferenceInvalidArgument { id: String },
     #[error("feature is not found: {id:?}")]
@@ -52,6 +55,7 @@ pub enum Error {
         id: String,
         path: std::path::PathBuf,
     },
+    #[cfg(feature = "tarball")]
     #[error("feature URI scheme must be https: {id:?}")]
     ReferenceSchemeMismatch { id: String },
 }
