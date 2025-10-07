@@ -49,7 +49,13 @@ pub fn write_feature(
         })?;
         let dep_reference = devpp_spec::feat::Reference::new(dep_id, config)?;
         let dep_feature = devpp_spec::feat::Feature::new(&dep_reference)?;
-        write_feature_dep(&mut w, &dep_feature, dep_options)?;
+        write_feature_dep(
+            &mut w,
+            #[cfg(feature = "devpp")]
+            build_info,
+            &dep_feature,
+            dep_options,
+        )?;
         writeln!(&mut w)?;
     }
 
@@ -111,6 +117,7 @@ pub fn write_feature(
 
 pub fn write_feature_dep(
     mut w: impl std::io::Write,
+    #[cfg(feature = "devpp")] build_info: &devpp_spec::devc::BuildInfo,
     feature: &devpp_spec::feat::Feature,
     options: &std::collections::BTreeMap<String, String>,
 ) -> Result<()> {
@@ -138,6 +145,19 @@ pub fn write_feature_dep(
         "COPY --from=devpp-feature-{id} \"/opt/{id}\" \"/opt/{id}\"",
         id = feature.inner.id
     )?;
+
+    #[cfg(feature = "devpp")]
+    {
+        let dir_name = feature.merger.parent().unwrap();
+        let file_name = feature.merger.file_name().unwrap();
+        writeln!(&mut w, "RUN \\")?;
+        writeln!(
+            &mut w,
+            "--mount=type=bind,source={source},target=/features/ \\",
+            source = dir_name.strip_prefix(&build_info.context)?.to_str().unwrap(),
+        )?;
+        writeln!(&mut w, "/features/{merger}", merger = file_name.to_str().unwrap(),)?;
+    }
 
     Ok(())
 }

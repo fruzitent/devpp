@@ -13,6 +13,9 @@ pub struct Feature {
     pub entrypoint: std::path::PathBuf,
     #[serde(flatten)]
     pub inner: generated::Feature,
+    #[cfg(feature = "devpp")]
+    #[serde(skip)]
+    pub merger: std::path::PathBuf,
     #[serde(skip)]
     pub metadata: std::path::PathBuf,
 }
@@ -38,9 +41,20 @@ impl Feature {
                     });
                 }
 
+                #[cfg(feature = "devpp")]
+                let path_merger = path.join("configure.sh");
+                #[cfg(feature = "devpp")]
+                if !path_merger.try_exists()? {
+                    return Err(Error::FeatureMergerNotFound {
+                        id: reference.id.clone(),
+                    });
+                }
+
                 let mut s = std::fs::read_to_string(&path_metadata)?;
                 json_strip_comments::strip(&mut s)?;
                 Self {
+                    #[cfg(feature = "devpp")]
+                    merger: path_merger,
                     entrypoint: path_entrypoint,
                     inner: serde_json::from_str(&s)?,
                     metadata: path_metadata,
