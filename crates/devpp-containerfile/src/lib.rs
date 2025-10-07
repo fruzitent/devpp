@@ -8,8 +8,6 @@ pub enum Error {
     Path(#[from] std::path::StripPrefixError),
     #[error(transparent)]
     Regex(#[from] regex::Error),
-    #[error("feature {id:?} is dependent on the {dep_id:?}, which was not found in the devcontainer.json")]
-    FeatureNotFound { dep_id: String, id: String },
     #[error("target stage must be set")]
     TargetNotFound,
 }
@@ -29,31 +27,26 @@ pub fn write_base(mut w: impl std::io::Write, build_info: &devpp_spec::devc::Bui
     Ok(())
 }
 
+type Options = std::collections::BTreeMap<String, String>;
+
 pub fn write_feature(
     mut w: impl std::io::Write,
     build_info: &devpp_spec::devc::BuildInfo,
-    config: &devpp_spec::devc::Config,
     #[cfg(feature = "devpp")] customizations: &devpp_spec::devpp::Customizations,
-    devc: &devpp_spec::devc::DevContainer,
     feature: &devpp_spec::feat::Feature,
-    options: &std::collections::BTreeMap<String, String>,
+    features: &std::collections::BTreeMap<&String, (devpp_spec::feat::Feature, &Options)>,
+    options: &Options,
 ) -> Result<()> {
     writeln!(&mut w, "FROM {TARGET} AS devpp-feature-{id}", id = feature.inner.id)?;
     writeln!(&mut w)?;
 
     for dep_id in &feature.inner.installs_after {
-        let dep_key = devc.common.features.get(dep_id);
-        let dep_options = dep_key.ok_or(Error::FeatureNotFound {
-            dep_id: dep_id.to_string(),
-            id: feature.inner.id.clone(),
-        })?;
-        let dep_reference = devpp_spec::feat::Reference::new(dep_id, config)?;
-        let dep_feature = devpp_spec::feat::Feature::new(&dep_reference)?;
+        let (dep_feature, dep_options) = features.get(dep_id).unwrap();
         write_feature_dep(
             &mut w,
             #[cfg(feature = "devpp")]
             build_info,
-            &dep_feature,
+            dep_feature,
             dep_options,
         )?;
         writeln!(&mut w)?;
@@ -119,7 +112,7 @@ pub fn write_feature_dep(
     mut w: impl std::io::Write,
     #[cfg(feature = "devpp")] build_info: &devpp_spec::devc::BuildInfo,
     feature: &devpp_spec::feat::Feature,
-    options: &std::collections::BTreeMap<String, String>,
+    options: &Options,
 ) -> Result<()> {
     writeln!(
         &mut w,

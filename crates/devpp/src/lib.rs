@@ -46,11 +46,10 @@ pub fn build(workspace: &std::path::Path, config: Option<&std::path::Path>) -> R
         devpp_containerfile::write_feature(
             &mut std::io::stdout(),
             &build_info,
-            &config,
             #[cfg(feature = "devpp")]
             &customizations,
-            &devc,
             feature,
+            &features,
             options,
         )?;
         writeln!(&mut std::io::stdout())?;
