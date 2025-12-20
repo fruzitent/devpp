@@ -1,16 +1,22 @@
+use std::process::exit;
+
+use crate::args::Args;
+use crate::args::CommandKind;
+use crate::args::generate_shell_completion;
+
 pub mod args;
 
 fn main() {
     tracing_subscriber::fmt::init();
 
-    let args = args::Args::default();
+    let args = Args::default();
     match args.command {
-        args::CommandKind::Build { config, workspace } => {
+        CommandKind::Build { config, workspace } => {
             if let Err(error) = devpp::build(&workspace, config.as_deref()) {
                 tracing::error!("{error}");
-                std::process::exit(1);
+                exit(1);
             }
         }
-        args::CommandKind::Completion { shell } => args::generate_shell_completion(shell),
+        CommandKind::Completion { shell } => generate_shell_completion(shell),
     }
 }

@@ -3,6 +3,8 @@ pub mod devc;
 pub mod devpp;
 pub mod feat;
 
+use std::path::PathBuf;
+
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error(transparent)]
@@ -18,17 +20,14 @@ pub enum Error {
     #[error(transparent)]
     Url(#[from] url::ParseError),
     #[error("config is not specified, found within search path {entries:?}")]
-    ConfigAmbiguous { entries: Vec<std::path::PathBuf> },
+    ConfigAmbiguous { entries: Vec<PathBuf> },
     #[error(
         "the config file could not be found in one the following locations: \
         [.devcontainer/devcontainer.json, .devcontainer.json, .devcontainer/<folder>/devcontainer.json]"
     )]
     ConfigNotFound,
     #[error("config {config:?} is not found within search path {entries:?}")]
-    ConfigPermissionDenied {
-        config: std::path::PathBuf,
-        entries: Vec<std::path::PathBuf>,
-    },
+    ConfigPermissionDenied { config: PathBuf, entries: Vec<PathBuf> },
     #[error("the project must have a .devcontainer/ folder at the root of the project workspace folder")]
     DotdevNotFound,
     #[error("the local feature's sub-folder must contain a install.sh entrypoint script: {id:?}")]
@@ -55,11 +54,7 @@ pub enum Error {
         "a local feature's source code must be contained within a sub-folder of the .devcontainer/ folder: \
         feature {id:?} is resolved to a path {path:?} outside of {dotdev:?} directory"
     )]
-    ReferencePathIllegal {
-        dotdev: std::path::PathBuf,
-        id: String,
-        path: std::path::PathBuf,
-    },
+    ReferencePathIllegal { dotdev: PathBuf, id: String, path: PathBuf },
     #[cfg(feature = "tarball")]
     #[error("feature URI scheme must be https: {id:?}")]
     ReferenceSchemeMismatch { id: String },
@@ -69,7 +64,10 @@ pub type Result<T> = std::result::Result<T, Error>;
 
 #[cfg(test)]
 mod tests {
-    pub(crate) fn root(path: impl AsRef<std::path::Path>) -> std::path::PathBuf {
-        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(path)
+    use std::path::Path;
+    use std::path::PathBuf;
+
+    pub(crate) fn root(path: impl AsRef<Path>) -> PathBuf {
+        Path::new(env!("CARGO_MANIFEST_DIR")).join(path)
     }
 }

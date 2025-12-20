@@ -1,5 +1,16 @@
+use std::path::Path;
+use std::path::PathBuf;
+
+use serde::Deserialize;
+use serde::Serialize;
+
 use crate::Error;
 use crate::Result;
+use crate::devc::generated::ComposeContainer;
+use crate::devc::generated::DevContainerCommon;
+use crate::devc::generated::DockerfileContainer;
+use crate::devc::generated::ImageContainer;
+use crate::devc::generated::NonComposeBase;
 
 #[allow(clippy::all)]
 pub mod generated {
@@ -9,11 +20,11 @@ pub mod generated {
 #[derive(Clone, Debug)]
 pub struct Config {
     pub kind: ConfigKind,
-    pub path: std::path::PathBuf,
+    pub path: PathBuf,
 }
 
 impl Config {
-    pub fn find_config(workspace: &std::path::Path, config: Option<&std::path::Path>) -> Result<Config> {
+    pub fn find_config(workspace: &Path, config: Option<&Path>) -> Result<Config> {
         let entries = Self::find_entries(workspace)?;
 
         if entries.is_empty() {
@@ -45,7 +56,7 @@ impl Config {
         }
     }
 
-    pub fn find_dotdev(&self) -> Result<std::path::PathBuf> {
+    pub fn find_dotdev(&self) -> Result<PathBuf> {
         match &self.kind {
             ConfigKind::Nested { dotdev } => Ok(dotdev.clone()),
             ConfigKind::Plain => Err(Error::DotdevNotFound),
@@ -53,7 +64,7 @@ impl Config {
         }
     }
 
-    pub fn find_entries(workspace: &std::path::Path) -> Result<Vec<Config>> {
+    pub fn find_entries(workspace: &Path) -> Result<Vec<Config>> {
         let mut entries = vec![];
         let dotdev = workspace.join(".devcontainer");
 
@@ -98,17 +109,17 @@ impl Config {
 #[derive(Clone, Debug)]
 pub enum ConfigKind {
     /// .devcontainer/devcontainer.json
-    Nested { dotdev: std::path::PathBuf },
+    Nested { dotdev: PathBuf },
     /// .devcontainer.json
     Plain,
     /// .devcontainer/<folder>/devcontainer.json
-    Scoped { dotdev: std::path::PathBuf },
+    Scoped { dotdev: PathBuf },
 }
 
-#[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct DevContainer {
     #[serde(flatten)]
-    pub common: generated::DevContainerCommon,
+    pub common: DevContainerCommon,
     #[serde(flatten)]
     pub is_compose: IsCompose,
 }
@@ -121,32 +132,32 @@ impl DevContainer {
     }
 }
 
-#[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(untagged)]
 pub enum IsCompose {
-    Compose(generated::ComposeContainer),
+    Compose(ComposeContainer),
     NonCompose(NonCompose),
 }
 
-#[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct NonCompose {
     #[serde(flatten)]
-    pub base: generated::NonComposeBase,
+    pub base: NonComposeBase,
     #[serde(flatten)]
     pub is_image: IsImage,
 }
 
-#[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(untagged)]
 pub enum IsImage {
-    Dockerfile(generated::DockerfileContainer),
-    Image(generated::ImageContainer),
+    Dockerfile(DockerfileContainer),
+    Image(ImageContainer),
 }
 
 #[derive(Clone, Debug)]
 pub struct BuildInfo {
-    pub containerfile: std::path::PathBuf,
-    pub context: std::path::PathBuf,
+    pub containerfile: PathBuf,
+    pub context: PathBuf,
     pub target: Option<String>,
 }
 
@@ -157,10 +168,10 @@ impl BuildInfo {
             IsCompose::Compose(_) => unimplemented!(),
             IsCompose::NonCompose(non_compose) => match &non_compose.is_image {
                 IsImage::Dockerfile(dockerfile_container) => match dockerfile_container {
-                    generated::DockerfileContainer::Variant0 { build } => Ok(Self {
+                    DockerfileContainer::Variant0 { build } => Ok(Self {
                         containerfile: config_dir.join(&build.dockerfile).canonicalize()?,
                         context: {
-                            let path = std::path::Path::new(build.context.as_deref().unwrap_or("."));
+                            let path = Path::new(build.context.as_deref().unwrap_or("."));
                             if path.is_relative() {
                                 config_dir.join(path).canonicalize()?
                             } else {
@@ -169,7 +180,7 @@ impl BuildInfo {
                         },
                         target: build.target.clone(),
                     }),
-                    generated::DockerfileContainer::Variant1 { .. } => unimplemented!(),
+                    DockerfileContainer::Variant1 { .. } => unimplemented!(),
                 },
                 IsImage::Image(_) => unimplemented!(),
             },

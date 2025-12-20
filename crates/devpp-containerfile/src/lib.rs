@@ -1,3 +1,16 @@
+use std::collections::BTreeMap;
+use std::fs::read_to_string;
+use std::io::Write;
+
+use devpp_spec::devc::BuildInfo;
+#[cfg(feature = "devpp")]
+use devpp_spec::devpp::Customizations;
+#[cfg(feature = "devpp")]
+use devpp_spec::devpp::generated::DevppCustomizationsDevppMountsItem;
+use devpp_spec::feat::Feature;
+use devpp_spec::feat::generated::FeatureOption;
+use regex::Regex;
+
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error(transparent)]
@@ -16,9 +29,9 @@ type Result<T> = std::result::Result<T, Error>;
 
 pub const TARGET: &str = "devpp-base";
 
-pub fn write_base(mut w: impl std::io::Write, build_info: &devpp_spec::devc::BuildInfo) -> Result<()> {
-    let s = std::fs::read_to_string(&build_info.containerfile)?;
-    let re = regex::Regex::new(&format!(
+pub fn write_base(mut w: impl Write, build_info: &BuildInfo) -> Result<()> {
+    let s = read_to_string(&build_info.containerfile)?;
+    let re = Regex::new(&format!(
         "(?im)AS(\\s+){target}$",
         target = build_info.target.as_ref().ok_or(Error::TargetNotFound)?,
     ))?;
@@ -27,14 +40,14 @@ pub fn write_base(mut w: impl std::io::Write, build_info: &devpp_spec::devc::Bui
     Ok(())
 }
 
-type Options = std::collections::BTreeMap<String, String>;
+type Options = BTreeMap<String, String>;
 
 pub fn write_feature(
-    mut w: impl std::io::Write,
-    build_info: &devpp_spec::devc::BuildInfo,
-    #[cfg(feature = "devpp")] customizations: &devpp_spec::devpp::Customizations,
-    feature: &devpp_spec::feat::Feature,
-    features: &std::collections::BTreeMap<&String, (devpp_spec::feat::Feature, &Options)>,
+    mut w: impl Write,
+    build_info: &BuildInfo,
+    #[cfg(feature = "devpp")] customizations: &Customizations,
+    feature: &Feature,
+    features: &BTreeMap<&String, (Feature, &Options)>,
     options: &Options,
 ) -> Result<()> {
     writeln!(&mut w, "FROM {TARGET} AS devpp-feature-{id}", id = feature.inner.id)?;
@@ -54,9 +67,9 @@ pub fn write_feature(
 
     for (key, option) in &feature.inner.options {
         let default = match option {
-            devpp_spec::feat::generated::FeatureOption::Variant0 { .. } => unimplemented!(),
-            devpp_spec::feat::generated::FeatureOption::Variant1 { default, .. } => default,
-            devpp_spec::feat::generated::FeatureOption::Variant2 { default, .. } => default,
+            FeatureOption::Variant0 { .. } => unimplemented!(),
+            FeatureOption::Variant1 { default, .. } => default,
+            FeatureOption::Variant2 { default, .. } => default,
         };
         let value = options.get(key).unwrap_or(default);
         writeln!(&mut w, "ARG {key}=\"{value}\"", key = key.to_uppercase())?;
@@ -85,7 +98,7 @@ pub fn write_feature(
     if let Some(devpp) = &customizations.0.devpp {
         for mount in &devpp.mounts {
             match mount {
-                devpp_spec::devpp::generated::DevppCustomizationsDevppMountsItem::Variant0(mount) => {
+                DevppCustomizationsDevppMountsItem::Variant0(mount) => {
                     writeln!(
                         &mut w,
                         "--mount=type={type_},target={target},sharing={sharing} \\",
@@ -94,7 +107,7 @@ pub fn write_feature(
                         type_ = mount.type_,
                     )?;
                 }
-                devpp_spec::devpp::generated::DevppCustomizationsDevppMountsItem::Variant1(_) => unimplemented!(),
+                DevppCustomizationsDevppMountsItem::Variant1(_) => unimplemented!(),
             }
         }
     }
@@ -109,9 +122,9 @@ pub fn write_feature(
 }
 
 pub fn write_feature_dep(
-    mut w: impl std::io::Write,
-    #[cfg(feature = "devpp")] build_info: &devpp_spec::devc::BuildInfo,
-    feature: &devpp_spec::feat::Feature,
+    mut w: impl Write,
+    #[cfg(feature = "devpp")] build_info: &BuildInfo,
+    feature: &Feature,
     options: &Options,
 ) -> Result<()> {
     writeln!(
@@ -121,9 +134,9 @@ pub fn write_feature_dep(
 
     for (key, option) in &feature.inner.options {
         let default = match option {
-            devpp_spec::feat::generated::FeatureOption::Variant0 { .. } => unimplemented!(),
-            devpp_spec::feat::generated::FeatureOption::Variant1 { default, .. } => default,
-            devpp_spec::feat::generated::FeatureOption::Variant2 { default, .. } => default,
+            FeatureOption::Variant0 { .. } => unimplemented!(),
+            FeatureOption::Variant1 { default, .. } => default,
+            FeatureOption::Variant2 { default, .. } => default,
         };
         let value = options.get(key).unwrap_or(default);
         writeln!(&mut w, "ARG {key}=\"{value}\"", key = key.to_uppercase())?;

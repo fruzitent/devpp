@@ -1,23 +1,35 @@
+use std::fs::read_to_string;
+use std::path::Path;
+use std::path::PathBuf;
+
+#[cfg(feature = "artifact")]
+use oci_spec::distribution::Reference as OciReference;
+use serde::Deserialize;
+use serde::Serialize;
+#[cfg(feature = "tarball")]
+use url::Url;
+
 use crate::Error;
 use crate::Result;
-use crate::devc;
+use crate::devc::Config;
+use crate::feat::generated::Feature as GeneratedFeature;
 
 #[allow(clippy::all)]
 pub mod generated {
     include!(concat!(env!("OUT_DIR"), "/feat.rs"));
 }
 
-#[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Feature {
     #[serde(skip)]
-    pub entrypoint: std::path::PathBuf,
+    pub entrypoint: PathBuf,
     #[serde(flatten)]
-    pub inner: generated::Feature,
+    pub inner: GeneratedFeature,
     #[cfg(feature = "devpp")]
     #[serde(skip)]
-    pub merger: std::path::PathBuf,
+    pub merger: PathBuf,
     #[serde(skip)]
-    pub metadata: std::path::PathBuf,
+    pub metadata: PathBuf,
 }
 
 impl Feature {
@@ -50,7 +62,7 @@ impl Feature {
                     });
                 }
 
-                let mut s = std::fs::read_to_string(&path_metadata)?;
+                let mut s = read_to_string(&path_metadata)?;
                 json_strip_comments::strip(&mut s)?;
                 Self {
                     #[cfg(feature = "devpp")]
@@ -75,7 +87,7 @@ pub struct Reference {
 }
 
 impl Reference {
-    pub fn new(id: &str, config: &devc::Config) -> Result<Self> {
+    pub fn new(id: &str, config: &Config) -> Result<Self> {
         Ok(Self {
             id: id.to_string(),
             kind: ReferenceKind::new(id, config)?,
@@ -108,19 +120,17 @@ impl Reference {
 pub enum ReferenceKind {
     /// @see: https://containers.dev/implementors/features-distribution/#oci-registry
     #[cfg(feature = "artifact")]
-    Artifact {
-        reference: oci_spec::distribution::Reference,
-    },
+    Artifact { reference: OciReference },
     /// @see: https://containers.dev/implementors/features-distribution/#addendum-locally-referenced
-    Local { path: std::path::PathBuf },
+    Local { path: PathBuf },
     /// @see: https://containers.dev/implementors/features-distribution/#directly-reference-tarball
     #[cfg(feature = "tarball")]
-    Tarball { url: url::Url },
+    Tarball { url: Url },
 }
 
 impl ReferenceKind {
-    pub fn new(id: &str, config: &devc::Config) -> Result<Self> {
-        if std::path::Path::new(id).is_absolute() {
+    pub fn new(id: &str, config: &Config) -> Result<Self> {
+        if Path::new(id).is_absolute() {
             return Err(Error::ReferencePathAbsolute { id: id.to_string() });
         }
 
@@ -142,12 +152,12 @@ impl ReferenceKind {
         }
 
         #[cfg(feature = "tarball")]
-        if let Ok(url) = url::Url::parse(id) {
+        if let Ok(url) = Url::parse(id) {
             if url.scheme() != "https" {
                 return Err(Error::ReferenceSchemeMismatch { id: id.to_string() });
             }
 
-            let path = std::path::Path::new(url.path());
+            let path = Path::new(url.path());
             let file_name = path.file_name().unwrap().to_str().unwrap();
 
             // TODO: check featureId
@@ -165,12 +175,12 @@ impl ReferenceKind {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::devc;
-    use crate::tests;
+    use crate::devc::DevContainer;
+    use crate::tests::root;
 
-    fn run_feature(workspace: &std::path::Path) -> Result<()> {
-        let config = devc::Config::find_config(workspace, None)?;
-        let devc = devc::DevContainer::new(std::fs::read_to_string(&config.path)?)?;
+    fn run_feature(workspace: &Path) -> Result<()> {
+        let config = Config::find_config(workspace, None)?;
+        let devc = DevContainer::new(std::fs::read_to_string(&config.path)?)?;
         for id in devc.common.features.keys() {
             let reference = Reference::new(id, &config)?;
             Feature::new(&reference)?;
@@ -180,7 +190,7 @@ mod tests {
 
     #[test]
     fn feature_entrypoint_not_found() {
-        let workspace = tests::root("tests/fixtures/feature_entrypoint_not_found");
+        let workspace = root("tests/fixtures/feature_entrypoint_not_found");
         match run_feature(&workspace) {
             Err(Error::FeatureEntrypointNotFound { .. }) => {}
             other => panic!("{other:?}"),
@@ -189,7 +199,7 @@ mod tests {
 
     #[test]
     fn feature_id_mismatch() {
-        let workspace = tests::root("tests/fixtures/feature_id_mismatch");
+        let workspace = root("tests/fixtures/feature_id_mismatch");
         match run_feature(&workspace) {
             Err(Error::FeatureIdMismatch { .. }) => {}
             other => panic!("{other:?}"),
@@ -198,16 +208,16 @@ mod tests {
 
     #[test]
     fn feature_metadata_not_found() {
-        let workspace = tests::root("tests/fixtures/feature_metadata_not_found");
+        let workspace = root("tests/fixtures/feature_metadata_not_found");
         match run_feature(&workspace) {
             Err(Error::FeatureMetadataNotFound { .. }) => {}
             other => panic!("{other:?}"),
         }
     }
 
-    fn run_reference(workspace: &std::path::Path) -> Result<()> {
-        let config = devc::Config::find_config(workspace, None)?;
-        let devc = devc::DevContainer::new(std::fs::read_to_string(&config.path)?)?;
+    fn run_reference(workspace: &Path) -> Result<()> {
+        let config = Config::find_config(workspace, None)?;
+        let devc = DevContainer::new(std::fs::read_to_string(&config.path)?)?;
         for id in devc.common.features.keys() {
             Reference::new(id, &config)?;
         }
@@ -217,7 +227,7 @@ mod tests {
     #[cfg(feature = "tarball")]
     #[test]
     fn reference_invalid_argument() {
-        let workspace = tests::root("tests/fixtures/reference_invalid_argument");
+        let workspace = root("tests/fixtures/reference_invalid_argument");
         match run_reference(&workspace) {
             Err(Error::ReferenceInvalidArgument { .. }) => {}
             other => panic!("{other:?}"),
@@ -226,7 +236,7 @@ mod tests {
 
     #[test]
     fn reference_not_found() {
-        let workspace = tests::root("tests/fixtures/reference_not_found");
+        let workspace = root("tests/fixtures/reference_not_found");
         match run_reference(&workspace) {
             Err(Error::ReferenceNotFound { .. }) => {}
             other => panic!("{other:?}"),
@@ -235,7 +245,7 @@ mod tests {
 
     #[test]
     fn reference_path_absolute() {
-        let workspace = tests::root("tests/fixtures/reference_path_absolute");
+        let workspace = root("tests/fixtures/reference_path_absolute");
         match run_reference(&workspace) {
             Err(Error::ReferencePathAbsolute { .. }) => {}
             other => panic!("{other:?}"),
@@ -244,7 +254,7 @@ mod tests {
 
     #[test]
     fn reference_path_illegal() {
-        let workspace = tests::root("tests/fixtures/reference_path_illegal");
+        let workspace = root("tests/fixtures/reference_path_illegal");
         match run_reference(&workspace) {
             Err(Error::ReferencePathIllegal { .. }) => {}
             other => panic!("{other:?}"),
@@ -253,7 +263,7 @@ mod tests {
 
     #[test]
     fn reference_path_traversal() {
-        let workspace = tests::root("tests/fixtures/reference_path_traversal");
+        let workspace = root("tests/fixtures/reference_path_traversal");
         match run_reference(&workspace) {
             Ok(_) => {}
             other => panic!("{other:?}"),
@@ -263,7 +273,7 @@ mod tests {
     #[cfg(feature = "tarball")]
     #[test]
     fn reference_scheme_mismatch() {
-        let workspace = tests::root("tests/fixtures/reference_scheme_mismatch");
+        let workspace = root("tests/fixtures/reference_scheme_mismatch");
         match run_reference(&workspace) {
             Err(Error::ReferenceSchemeMismatch { .. }) => {}
             other => panic!("{other:?}"),

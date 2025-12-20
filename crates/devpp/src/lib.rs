@@ -1,4 +1,17 @@
+use std::collections::BTreeMap;
+use std::fs::read_to_string;
 use std::io::Write;
+use std::path::Path;
+
+use devpp_spec::devc::BuildInfo;
+use devpp_spec::devc::Config;
+use devpp_spec::devc::DevContainer;
+#[cfg(feature = "devpp")]
+use devpp_spec::devpp::Customizations;
+use devpp_spec::feat::Feature;
+use devpp_spec::feat::Reference;
+use topo_sort::SortResults;
+use topo_sort::TopoSort;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
@@ -16,24 +29,24 @@ pub enum Error {
 
 pub type Result<T> = std::result::Result<T, Error>;
 
-pub fn build(workspace: &std::path::Path, config: Option<&std::path::Path>) -> Result<()> {
-    let config = devpp_spec::devc::Config::find_config(workspace, config)?;
-    let devc = devpp_spec::devc::DevContainer::new(std::fs::read_to_string(&config.path)?)?;
-    let build_info = devpp_spec::devc::BuildInfo::new(&config, &devc)?;
+pub fn build(workspace: &Path, config: Option<&Path>) -> Result<()> {
+    let config = Config::find_config(workspace, config)?;
+    let devc = DevContainer::new(read_to_string(&config.path)?)?;
+    let build_info = BuildInfo::new(&config, &devc)?;
 
-    let mut features = std::collections::BTreeMap::new();
-    let mut graph = topo_sort::TopoSort::new();
+    let mut features = BTreeMap::new();
+    let mut graph = TopoSort::new();
 
     for (id, options) in &devc.common.features {
-        let reference = devpp_spec::feat::Reference::new(id, &config)?;
-        let feature = devpp_spec::feat::Feature::new(&reference)?;
+        let reference = Reference::new(id, &config)?;
+        let feature = Feature::new(&reference)?;
         graph.insert(id.to_owned(), feature.inner.installs_after.to_vec());
         features.insert(id, (feature, options));
     }
 
     let items = match graph.into_vec_nodes() {
-        topo_sort::SortResults::Full(items) => items,
-        topo_sort::SortResults::Partial(_) => return Err(Error::GraphCycle),
+        SortResults::Full(items) => items,
+        SortResults::Partial(_) => return Err(Error::GraphCycle),
     };
 
     devpp_containerfile::write_base(&mut std::io::stdout(), &build_info)?;
@@ -42,7 +55,7 @@ pub fn build(workspace: &std::path::Path, config: Option<&std::path::Path>) -> R
     for id in items {
         let (feature, options) = features.get(&id).unwrap();
         #[cfg(feature = "devpp")]
-        let customizations = devpp_spec::devpp::Customizations::new(feature);
+        let customizations = Customizations::new(feature);
         devpp_containerfile::write_feature(
             &mut std::io::stdout(),
             &build_info,
