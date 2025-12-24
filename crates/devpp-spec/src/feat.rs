@@ -27,7 +27,7 @@ pub struct Feature {
     pub inner: GeneratedFeature,
     #[cfg(feature = "devpp")]
     #[serde(skip)]
-    pub merger: PathBuf,
+    pub merger: Option<PathBuf>,
     #[serde(skip)]
     pub metadata: PathBuf,
 }
@@ -55,18 +55,12 @@ impl Feature {
 
                 #[cfg(feature = "devpp")]
                 let path_merger = path.join("configure.sh");
-                #[cfg(feature = "devpp")]
-                if !path_merger.try_exists()? {
-                    return Err(Error::FeatureMergerNotFound {
-                        id: reference.id.clone(),
-                    });
-                }
 
                 let mut s = read_to_string(&path_metadata)?;
                 json_strip_comments::strip(&mut s)?;
                 Self {
                     #[cfg(feature = "devpp")]
-                    merger: path_merger,
+                    merger: path_merger.try_exists()?.then_some(path_merger),
                     entrypoint: path_entrypoint,
                     inner: serde_json::from_str(&s)?,
                     metadata: path_metadata,

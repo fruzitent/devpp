@@ -32,9 +32,6 @@ pub enum Error {
     DotdevNotFound,
     #[error("the local feature's sub-folder must contain a install.sh entrypoint script: {id:?}")]
     FeatureEntrypointNotFound { id: String },
-    #[cfg(feature = "devpp")]
-    #[error("the local feature's sub-folder must contain a configure.sh merger script: {id:?}")]
-    FeatureMergerNotFound { id: String },
     #[error("the local feature's sub-folder must contain a devcontainer-feature.json file: {id:?}")]
     FeatureMetadataNotFound { id: String },
     #[error("the sub-folder name must match the feature's id field: {id:?} expected {expected:?}, but got {got:?}")]

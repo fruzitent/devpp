@@ -153,9 +153,9 @@ pub fn write_feature_dep(
     )?;
 
     #[cfg(feature = "devpp")]
-    {
-        let dir_name = feature.merger.parent().unwrap();
-        let file_name = feature.merger.file_name().unwrap();
+    if let Some(merger) = &feature.merger {
+        let dir_name = merger.parent().unwrap();
+        let file_name = merger.file_name().unwrap();
         writeln!(&mut w, "RUN \\")?;
         writeln!(
             &mut w,
