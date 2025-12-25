@@ -1,3 +1,5 @@
+pub mod error;
+
 use std::collections::BTreeMap;
 use std::fs::read_to_string;
 use std::io::Write;
@@ -11,21 +13,8 @@ use devpp_spec::feat::Feature;
 use devpp_spec::feat::generated::FeatureOption;
 use regex::Regex;
 
-#[derive(Debug, thiserror::Error)]
-pub enum Error {
-    #[error(transparent)]
-    DevppSpec(#[from] devpp_spec::error::Error),
-    #[error(transparent)]
-    Io(#[from] std::io::Error),
-    #[error(transparent)]
-    Path(#[from] std::path::StripPrefixError),
-    #[error(transparent)]
-    Regex(#[from] regex::Error),
-    #[error("target stage must be set")]
-    TargetNotFound,
-}
-
-type Result<T> = std::result::Result<T, Error>;
+use crate::error::Error;
+use crate::error::Result;
 
 pub const TARGET: &str = "devpp-base";
 

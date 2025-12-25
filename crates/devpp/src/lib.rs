@@ -16,7 +16,7 @@ use topo_sort::TopoSort;
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error(transparent)]
-    DevppContainerfile(#[from] devpp_containerfile::Error),
+    DevppContainerfile(#[from] devpp_containerfile::error::Error),
     #[error(transparent)]
     DevppSpec(#[from] devpp_spec::error::Error),
     #[error(transparent)]
