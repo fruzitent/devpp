@@ -232,7 +232,7 @@ name = "devpp-containerfile"
 version = "0.0.0"
 dependencies = [
  "devpp-spec",
- "regex",
+ "dockerfile-parser-rs",
  "thiserror",
 ]
 
@@ -282,6 +282,18 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "dockerfile-parser-rs"
+version = "3.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4d5df16b4354d824fcbe407b8fec26fb9211a919b15c61a368a339b6d65eb2ae"
+dependencies = [
+ "clap",
+ "regex",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

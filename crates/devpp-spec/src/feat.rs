@@ -1,3 +1,4 @@
+use std::collections::BTreeMap;
 use std::fs::read_to_string;
 use std::path::Path;
 use std::path::PathBuf;
@@ -73,6 +74,9 @@ impl Feature {
         Ok(this)
     }
 }
+
+pub type Features<'a> = BTreeMap<&'a String, (Feature, &'a Options)>;
+pub type Options = BTreeMap<String, String>;
 
 #[derive(Clone, Debug)]
 pub struct Reference {

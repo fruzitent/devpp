@@ -4,7 +4,7 @@
 [build-dependencies]
 
 [dependencies]
-regex = "1.11.3"
+dockerfile-parser-rs = "3.2.2"
 thiserror = "2.0.17"
 
 devpp-spec = { workspace = true }
