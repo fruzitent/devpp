@@ -4,13 +4,13 @@ use std::path::PathBuf;
 use serde::Deserialize;
 use serde::Serialize;
 
-use crate::Error;
-use crate::Result;
 use crate::devc::generated::ComposeContainer;
 use crate::devc::generated::DevContainerCommon;
 use crate::devc::generated::DockerfileContainer;
 use crate::devc::generated::ImageContainer;
 use crate::devc::generated::NonComposeBase;
+use crate::error::Error;
+use crate::error::Result;
 
 #[allow(clippy::all)]
 pub mod generated {

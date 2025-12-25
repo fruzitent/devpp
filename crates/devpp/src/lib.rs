@@ -18,7 +18,7 @@ pub enum Error {
     #[error(transparent)]
     DevppContainerfile(#[from] devpp_containerfile::Error),
     #[error(transparent)]
-    DevppSpec(#[from] devpp_spec::Error),
+    DevppSpec(#[from] devpp_spec::error::Error),
     #[error(transparent)]
     Io(#[from] std::io::Error),
     #[error("unexpected cycle")]

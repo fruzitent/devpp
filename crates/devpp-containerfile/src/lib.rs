@@ -14,7 +14,7 @@ use regex::Regex;
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error(transparent)]
-    DevppSpec(#[from] devpp_spec::Error),
+    DevppSpec(#[from] devpp_spec::error::Error),
     #[error(transparent)]
     Io(#[from] std::io::Error),
     #[error(transparent)]

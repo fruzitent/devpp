@@ -9,9 +9,9 @@ use serde::Serialize;
 #[cfg(feature = "tarball")]
 use url::Url;
 
-use crate::Error;
-use crate::Result;
 use crate::devc::Config;
+use crate::error::Error;
+use crate::error::Result;
 use crate::feat::generated::Feature as GeneratedFeature;
 
 #[allow(clippy::all)]
