@@ -1,22 +1,16 @@
-use std::process::exit;
+pub mod args;
+pub mod cmd;
+pub mod color;
+pub mod error;
 
 use crate::args::Args;
 use crate::args::CommandKind;
-use crate::args::generate_shell_completion;
+use crate::error::Result;
 
-pub mod args;
-
-fn main() {
-    tracing_subscriber::fmt::init();
-
+fn main() -> Result<()> {
     let args = Args::default();
     match args.command {
-        CommandKind::Build { config, workspace } => {
-            if let Err(error) = devpp::build(&workspace, config.as_deref()) {
-                tracing::error!("{error}");
-                exit(1);
-            }
-        }
-        CommandKind::Completion { shell } => generate_shell_completion(shell),
+        CommandKind::Build(args) => cmd::build::run(args),
+        CommandKind::Completion(args) => cmd::completion::run::<Args>(args),
     }
 }

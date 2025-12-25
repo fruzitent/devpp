@@ -6,12 +6,14 @@ default-members = ["./crates/devpp/"]
 members = [
     "./crates/devpp/",
     "./crates/devpp-containerfile/",
+    "./crates/devpp-core/",
     "./crates/devpp-spec/",
 ]
 resolver = "3"
 
 [workspace.dependencies]
 devpp-containerfile = { path = "./crates/devpp-containerfile/" }
+devpp-core = { path = "./crates/devpp-core/" }
 devpp-spec = { path = "./crates/devpp-spec/" }
 
 [workspace.package]

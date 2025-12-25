@@ -221,10 +221,8 @@ dependencies = [
  "anstyle",
  "clap",
  "clap_complete",
- "devpp-containerfile",
- "devpp-spec",
+ "devpp-core",
  "thiserror",
- "topo_sort",
  "tracing",
  "tracing-subscriber",
 ]
@@ -236,6 +234,16 @@ dependencies = [
  "devpp-spec",
  "regex",
  "thiserror",
+]
+
+[[package]]
+name = "devpp-core"
+version = "0.0.0"
+dependencies = [
+ "devpp-containerfile",
+ "devpp-spec",
+ "thiserror",
+ "topo_sort",
 ]
 
 [[package]]
