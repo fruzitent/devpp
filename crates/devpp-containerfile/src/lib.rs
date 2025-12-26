@@ -212,10 +212,18 @@ impl<'a> Containerfile<'a> {
 
     fn push_args(&mut self, feature: &Feature, options: &Options) {
         let args = BTreeMap::from_iter(feature.inner.options.iter().map(|(key, option)| {
-            let default = match option {
+            let (default, description) = match option {
                 FeatureOption::Variant0 { .. } => unimplemented!(),
-                FeatureOption::Variant1 { default, .. } => default,
-                FeatureOption::Variant2 { default, .. } => default,
+                FeatureOption::Variant1 {
+                    default, description, ..
+                } => (default, description),
+                FeatureOption::Variant2 {
+                    default, description, ..
+                } => (default, description),
+            };
+            if let Some(description) = description {
+                let comment = format!("# @see: {description}");
+                self.ast.instructions.push(Instruction::Comment(comment));
             };
             (key.to_uppercase(), Some(options.get(key).unwrap_or(default).clone()))
         }));
