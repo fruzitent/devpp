@@ -30,6 +30,11 @@
       "properties": {
         "devpp": {
           "properties": {
+            "merge": {
+              "default": false,
+              "description": "If true, the feature will be merged into the target stage",
+              "type": "boolean"
+            },
             "mounts": {
               "description": "Mount points to set up when creating the container. See Docker's documentation for the --mount option for the supported syntax.",
               "items": {

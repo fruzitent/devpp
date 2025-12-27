@@ -46,6 +46,7 @@ pub fn find_stage<'a>(ast: &'a mut Dockerfile, target: &String) -> Result<&'a mu
 pub struct Containerfile<'a> {
     ast: Dockerfile,
     build_info: &'a BuildInfo,
+    instr: Vec<Instruction>,
 }
 
 impl<'a> Containerfile<'a> {
@@ -53,6 +54,7 @@ impl<'a> Containerfile<'a> {
         Ok(Self {
             ast: Dockerfile::from_str(&read_to_string(&build_info.containerfile)?)?,
             build_info,
+            instr: Vec::new(),
         })
     }
 
@@ -61,43 +63,51 @@ impl<'a> Containerfile<'a> {
             self.ast.instructions.push(Instruction::Empty {});
         }
 
-        self.apply_feature_begin(feature, options)?;
-        self.ast.instructions.push(Instruction::Empty {});
+        let customizations = Customizations::new(feature);
+        let is_merge = match &customizations.0.devpp {
+            Some(devpp) => devpp.merge,
+            None => false,
+        };
+
+        if !is_merge {
+            self.apply_feature_begin(feature, options)?;
+        }
 
         for id in &feature.inner.installs_after {
             let (feature, options) = features.get(id).unwrap();
             self.apply_feature_dep(feature, options)?;
-            self.ast.instructions.push(Instruction::Empty {});
         }
 
         self.apply_feature_end(
             feature,
             options,
             #[cfg(feature = "devpp")]
-            &Customizations::new(feature),
+            &customizations,
         )?;
 
+        self.ast.instructions.append(&mut self.instr);
         Ok(())
     }
 
     fn apply_feature_begin(&mut self, feature: &Feature, _options: &Options) -> Result<()> {
-        self.ast.instructions.push(Instruction::From {
+        self.instr.push(Instruction::From {
             alias: Some(Self::feature_target(&feature.inner.id)),
             image: Self::BASE_TARGET.to_string(),
             platform: None,
         });
+        self.instr.push(Instruction::Empty {});
         Ok(())
     }
 
     fn apply_feature_dep(&mut self, feature: &Feature, options: &Options) -> Result<()> {
         let comment = "# @see: [acquire.sh](https://github.com/devcontainers/spec/issues/21)";
-        self.ast.instructions.push(Instruction::Comment(comment.to_string()));
+        self.instr.push(Instruction::Comment(comment.to_string()));
 
         self.push_args(feature, options);
         self.push_envs(feature);
 
         let path = format!("/opt/{id}/", id = feature.inner.id);
-        self.ast.instructions.push(Instruction::Copy {
+        self.instr.push(Instruction::Copy {
             chmod: None,
             chown: None,
             destination: path.clone(),
@@ -110,7 +120,7 @@ impl<'a> Containerfile<'a> {
         if let Some(merger) = &feature.merger {
             let dir_name = merger.parent().unwrap();
             let file_name = merger.file_name().unwrap();
-            self.ast.instructions.push(Instruction::Run {
+            self.instr.push(Instruction::Run {
                 command: vec![String::from("<<EOF")],
                 heredoc: Some(vec![
                     format!("/features/{merger}", merger = file_name.to_str().unwrap()),
@@ -128,6 +138,7 @@ impl<'a> Containerfile<'a> {
             });
         }
 
+        self.instr.push(Instruction::Empty {});
         Ok(())
     }
 
@@ -139,12 +150,12 @@ impl<'a> Containerfile<'a> {
     ) -> Result<()> {
         self.push_args(feature, options);
         if !feature.inner.options.is_empty() {
-            self.ast.instructions.push(Instruction::Empty {})
+            self.instr.push(Instruction::Empty {})
         }
 
         self.push_envs(feature);
         if !feature.inner.container_env.is_empty() {
-            self.ast.instructions.push(Instruction::Empty {})
+            self.instr.push(Instruction::Empty {})
         }
 
         let dir_name = feature.entrypoint.parent().unwrap();
@@ -172,7 +183,7 @@ impl<'a> Containerfile<'a> {
             }
         }
 
-        self.ast.instructions.push(Instruction::Run {
+        self.instr.push(Instruction::Run {
             command: vec![String::from("<<EOF")],
             heredoc: Some(vec![
                 format!("/features/{entrypoint}", entrypoint = file_name.to_str().unwrap()),
@@ -223,12 +234,12 @@ impl<'a> Containerfile<'a> {
             };
             if let Some(description) = description {
                 let comment = format!("# @see: {description}");
-                self.ast.instructions.push(Instruction::Comment(comment));
+                self.instr.push(Instruction::Comment(comment));
             };
             (key.to_uppercase(), Some(options.get(key).unwrap_or(default).clone()))
         }));
         if !args.is_empty() {
-            self.ast.instructions.push(Instruction::Arg(args));
+            self.instr.push(Instruction::Arg(args));
         }
     }
 
@@ -241,7 +252,7 @@ impl<'a> Containerfile<'a> {
                 .map(|(key, value)| (key.clone(), value.clone())),
         );
         if !envs.is_empty() {
-            self.ast.instructions.push(Instruction::Env(envs));
+            self.instr.push(Instruction::Env(envs));
         }
     }
 }
