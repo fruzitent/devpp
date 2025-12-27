@@ -6,8 +6,8 @@ pub enum Error {
     DevppSpec(#[from] devpp_spec::error::Error),
     #[error(transparent)]
     Io(#[from] std::io::Error),
-    #[error("unexpected cycle")]
-    GraphCycle,
+    #[error(transparent)]
+    StableTopoSort(#[from] stable_topo_sort::error::Error),
 }
 
 pub type Result<T> = std::result::Result<T, Error>;

@@ -8,6 +8,7 @@ members = [
     "./crates/devpp-containerfile/",
     "./crates/devpp-core/",
     "./crates/devpp-spec/",
+    "./crates/stable-topo-sort/",
 ]
 resolver = "3"
 
@@ -15,6 +16,7 @@ resolver = "3"
 devpp-containerfile = { path = "./crates/devpp-containerfile/" }
 devpp-core = { path = "./crates/devpp-core/" }
 devpp-spec = { path = "./crates/devpp-spec/" }
+stable-topo-sort = { path = "./crates/stable-topo-sort/" }
 
 [workspace.package]
 authors = ["fruzitent <fruzit@gmail.com>"]

@@ -4,19 +4,14 @@
 [build-dependencies]
 
 [dependencies]
-devpp-containerfile = { workspace = true }
-devpp-spec = { workspace = true }
-stable-topo-sort = { workspace = true }
 thiserror = "2.0.17"
 
 [dev-dependencies]
 
 [features]
-default = ["devpp"]
-
-devpp = ["devpp-containerfile/devpp", "devpp-spec/devpp"]
+default = []
 
 [package]
 edition = "2024"
-name = "devpp-core"
+name = "stable-topo-sort"
 version = "0.0.0"
