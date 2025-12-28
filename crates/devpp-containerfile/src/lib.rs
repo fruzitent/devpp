@@ -75,7 +75,7 @@ impl<'a> Containerfile<'a> {
 
         for id in &feature.inner.installs_after {
             let (feature, options) = features.get(id).unwrap();
-            self.apply_feature_dep(feature, options)?;
+            self.apply_feature_dep(feature, options, true)?;
         }
 
         self.apply_feature_end(
@@ -99,11 +99,13 @@ impl<'a> Containerfile<'a> {
         Ok(())
     }
 
-    fn apply_feature_dep(&mut self, feature: &Feature, options: &Options) -> Result<()> {
+    fn apply_feature_dep(&mut self, feature: &Feature, options: &Options, is_args: bool) -> Result<()> {
         let comment = "# @see: [acquire.sh](https://github.com/devcontainers/spec/issues/21)";
         self.instr.push(Instruction::Comment(comment.to_string()));
 
-        self.push_args(feature, options);
+        if is_args {
+            self.push_args(feature, options);
+        }
         self.push_envs(feature);
 
         let path = format!("/opt/{id}/", id = feature.inner.id);
@@ -199,6 +201,28 @@ impl<'a> Containerfile<'a> {
             network: None,
             security: None,
         });
+
+        Ok(())
+    }
+
+    #[cfg(feature = "devpp")]
+    pub fn apply_merger(&mut self, features: &Features, ids: &[&String]) -> Result<()> {
+        if !matches!(self.ast.instructions.last(), None | Some(Instruction::Empty {})) {
+            self.ast.instructions.push(Instruction::Empty {});
+        }
+
+        self.ast.instructions.push(Instruction::From {
+            alias: Some(self.build_info.target.clone().ok_or(Error::TargetNotFound)?),
+            image: Self::BASE_TARGET.to_string(),
+            platform: None,
+        });
+        self.ast.instructions.push(Instruction::Empty {});
+
+        for id in ids {
+            let (feature, options) = features.get(id).unwrap();
+            self.apply_feature_dep(feature, options, false)?;
+            self.ast.instructions.append(&mut self.instr);
+        }
 
         Ok(())
     }

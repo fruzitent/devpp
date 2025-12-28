@@ -39,10 +39,12 @@ pub fn build(mut w: impl Write, workspace: &Path, config: Option<&Path>) -> Resu
     let mut cf = Containerfile::new(&build_info)?;
     cf.patch_base()?;
 
-    for id in ids {
+    for id in &ids {
         let (feature, options) = features.get(id).unwrap();
         cf.apply_feature(feature, options, &features)?;
     }
+
+    cf.apply_merger(&features, &ids)?;
 
     Ok(writeln!(w, "{cf}")?)
 }
