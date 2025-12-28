@@ -125,7 +125,7 @@ impl<'a> Containerfile<'a> {
             self.instr.push(Instruction::Run {
                 command: vec![String::from("<<EOF")],
                 heredoc: Some(vec![
-                    format!("/features/{merger}", merger = file_name.to_str().unwrap()),
+                    format!("sh /features/{merger}", merger = file_name.to_str().unwrap()), // TODO: chmod 0755
                     String::from("EOF"),
                 ]),
                 mount: Some(ToString::to_string(&Mount::Devc(DevcMount {
@@ -188,7 +188,7 @@ impl<'a> Containerfile<'a> {
         self.instr.push(Instruction::Run {
             command: vec![String::from("<<EOF")],
             heredoc: Some(vec![
-                format!("/features/{entrypoint}", entrypoint = file_name.to_str().unwrap()),
+                format!("sh /features/{entrypoint}", entrypoint = file_name.to_str().unwrap()), // TODO: chmod 0755
                 String::from("EOF"),
             ]),
             mount: Some(
