@@ -242,7 +242,7 @@ impl<'a> Entry<'a> {
 
     fn push_copy(&self, sink: &mut Vec<Instr>) {
         // TODO: unhardcode install path
-        let path = PathBuf::from(format!("/opt/{}", self.feat.inner.id));
+        let path = Path::new("/opt/").join(&self.feat.inner.id).join("");
         sink.push(Instr::Copy {
             destination: path.clone(),
             options: Some(CopyOptions {
@@ -293,10 +293,11 @@ impl<'a> Entry<'a> {
         let dir_name = path.parent().unwrap();
         let file_name = path.file_name().unwrap();
 
+        let destination = PathBuf::from("/feature/");
         let mut mounts = vec![Mount::Bind {
-            destination: PathBuf::from("/features/"),
+            destination: destination.clone(),
             options: Some(BindOptions {
-                source: Some(dir_name.strip_prefix(context)?.to_path_buf()),
+                source: Some(Path::new(".").join(dir_name.strip_prefix(context)?).join("")),
                 ..Default::default()
             }),
         }];
@@ -305,7 +306,7 @@ impl<'a> Entry<'a> {
         sink.push(Instr::Run {
             command: vec![
                 String::from("sh"), // TODO: chmod 0755
-                format!("/features/{}", file_name.to_str().expect("UTF-8")),
+                destination.join(file_name).to_str().expect("UTF-8").to_string(),
             ],
             options: Some(RunOptions {
                 mount: Some(mounts),

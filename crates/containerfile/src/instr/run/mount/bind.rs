@@ -2,6 +2,8 @@ use std::fmt::Display;
 use std::fmt::Formatter;
 use std::path::PathBuf;
 
+use crate::instr::DEFAULT_ESCAPE;
+use crate::instr::escape_str;
 use crate::instr::from::FromKind;
 
 #[derive(Debug, Default)]
@@ -27,7 +29,11 @@ impl Display for BindOptions {
             args.push(String::from("readwrite"));
         }
         if let Some(source) = source {
-            args.push(format!("source={}", source.to_str().expect("UTF-8")));
+            args.push(format!(
+                "source={}",
+                // TODO: handle escape char
+                escape_str(DEFAULT_ESCAPE, source.to_str().expect("UTF-8"))
+            ));
         }
 
         write!(f, "{}", args.join(","))?;

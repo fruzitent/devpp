@@ -2,6 +2,9 @@ use std::fmt::Display;
 use std::fmt::Formatter;
 use std::path::PathBuf;
 
+use crate::instr::DEFAULT_ESCAPE;
+use crate::instr::escape_str;
+
 #[derive(Debug, Default)]
 pub struct SecretOptions {
     pub destination: Option<PathBuf>,
@@ -27,7 +30,11 @@ impl Display for SecretOptions {
         let mut args = vec![];
 
         if let Some(destination) = destination {
-            args.push(format!("destination={}", destination.to_str().expect("UTF-8")));
+            // TODO: handle escape char
+            args.push(format!(
+                "destination={}",
+                escape_str(DEFAULT_ESCAPE, destination.to_str().expect("UTF-8"))
+            ));
         }
         if let Some(env) = env {
             args.push(format!("env={env}"));

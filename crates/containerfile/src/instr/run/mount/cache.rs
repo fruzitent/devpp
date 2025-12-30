@@ -2,6 +2,8 @@ use std::fmt::Display;
 use std::fmt::Formatter;
 use std::path::PathBuf;
 
+use crate::instr::DEFAULT_ESCAPE;
+use crate::instr::escape_str;
 use crate::instr::from::FromKind;
 
 #[derive(Debug, Default)]
@@ -49,7 +51,11 @@ impl Display for CacheOptions {
             args.push(format!("sharing={sharing}"));
         }
         if let Some(source) = source {
-            args.push(format!("source={}", source.to_str().expect("UTF-8")));
+            // TODO: handle escape char
+            args.push(format!(
+                "source={}",
+                escape_str(DEFAULT_ESCAPE, source.to_str().expect("UTF-8"))
+            ));
         }
         if let Some(_uid) = uid {
             unimplemented!();

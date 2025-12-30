@@ -8,6 +8,8 @@ use std::fmt::Display;
 use std::fmt::Formatter;
 use std::path::PathBuf;
 
+use crate::instr::DEFAULT_ESCAPE;
+use crate::instr::escape_str;
 use crate::instr::run::mount::bind::BindOptions;
 use crate::instr::run::mount::cache::CacheOptions;
 use crate::instr::run::mount::secret::SecretOptions;
@@ -47,14 +49,22 @@ impl Display for Mount {
         match self {
             Mount::Bind { destination, options } => {
                 args.push(String::from("type=bind"));
-                args.push(format!("destination={}", destination.to_str().expect("UTF-8")));
+                // TODO: handle escape char
+                args.push(format!(
+                    "destination={}",
+                    escape_str(DEFAULT_ESCAPE, destination.to_str().expect("UTF-8"))
+                ));
                 if let Some(options) = options {
                     args.push(format!("{options}"));
                 }
             }
             Mount::Cache { destination, options } => {
                 args.push(String::from("type=cache"));
-                args.push(format!("destination={}", destination.to_str().expect("UTF-8")));
+                // TODO: handle escape char
+                args.push(format!(
+                    "destination={}",
+                    escape_str(DEFAULT_ESCAPE, destination.to_str().expect("UTF-8"))
+                ));
                 if let Some(options) = options {
                     args.push(format!("{options}"));
                 }
@@ -73,7 +83,11 @@ impl Display for Mount {
             }
             Mount::Tmpfs { destination, options } => {
                 args.push(String::from("type=tmpfs"));
-                args.push(format!("destination={}", destination.to_str().expect("UTF-8")));
+                // TODO: handle escape char
+                args.push(format!(
+                    "destination={}",
+                    escape_str(DEFAULT_ESCAPE, destination.to_str().expect("UTF-8"))
+                ));
                 if let Some(options) = options {
                     args.push(format!("{options}"));
                 }

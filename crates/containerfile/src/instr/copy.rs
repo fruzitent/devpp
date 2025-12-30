@@ -41,29 +41,7 @@ impl Display for CopyOptions {
             unimplemented!();
         }
         if let Some(from) = from {
-            let mut s = String::from("--from=");
-            match from {
-                FromKind::Context(context) => s.push_str(context),
-                FromKind::Image {
-                    digest,
-                    image,
-                    repo,
-                    tag,
-                } => {
-                    if let Some(repo) = repo {
-                        s.push_str(&format!("{repo}/"));
-                    }
-                    s.push_str(image);
-                    if let Some(tag) = tag {
-                        s.push_str(&format!(":{tag}"));
-                    }
-                    if let Some(digest) = digest {
-                        s.push_str(&format!("@{digest}"));
-                    }
-                }
-                FromKind::Stage(stage) => s.push_str(stage),
-            }
-            args.push(s);
+            args.push(format!("--from={from}"));
         }
         if *link {
             args.push(String::from("--link"));
