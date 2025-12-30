@@ -1,5 +1,4 @@
 pub mod devc;
-#[cfg(feature = "devpp")]
 pub mod devpp;
 pub mod error;
 pub mod feat;

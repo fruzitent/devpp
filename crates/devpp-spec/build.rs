@@ -28,7 +28,6 @@ fn generate_devc() {
     typify("devc.rs", &s, settings);
 }
 
-#[cfg(feature = "devpp")]
 fn generate_devpp() {
     let s = read_to_string("./src/devpp.schema.json").unwrap();
     let mut settings = TypeSpaceSettings::default();
@@ -48,7 +47,6 @@ fn generate_feat() {
 
 fn main() {
     generate_devc();
-    #[cfg(feature = "devpp")]
     generate_devpp();
     generate_feat();
 }

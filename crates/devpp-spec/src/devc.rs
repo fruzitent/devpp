@@ -154,40 +154,6 @@ pub enum IsImage {
     Image(ImageContainer),
 }
 
-#[derive(Clone, Debug)]
-pub struct BuildInfo {
-    pub containerfile: PathBuf,
-    pub context: PathBuf,
-    pub target: Option<String>,
-}
-
-impl BuildInfo {
-    pub fn new(config: &Config, devc: &DevContainer) -> Result<Self> {
-        let config_dir = config.path.parent().unwrap();
-        match &devc.is_compose {
-            IsCompose::Compose(_) => unimplemented!(),
-            IsCompose::NonCompose(non_compose) => match &non_compose.is_image {
-                IsImage::Dockerfile(dockerfile_container) => match dockerfile_container {
-                    DockerfileContainer::Variant0 { build } => Ok(Self {
-                        containerfile: config_dir.join(&build.dockerfile).canonicalize()?,
-                        context: {
-                            let path = Path::new(build.context.as_deref().unwrap_or("."));
-                            if path.is_relative() {
-                                config_dir.join(path).canonicalize()?
-                            } else {
-                                path.canonicalize()?
-                            }
-                        },
-                        target: build.target.clone(),
-                    }),
-                    DockerfileContainer::Variant1 { .. } => unimplemented!(),
-                },
-                IsImage::Image(_) => unimplemented!(),
-            },
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;

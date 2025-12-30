@@ -4,8 +4,8 @@
 [workspace]
 default-members = ["./crates/devpp/"]
 members = [
+    "./crates/containerfile/",
     "./crates/devpp/",
-    "./crates/devpp-containerfile/",
     "./crates/devpp-core/",
     "./crates/devpp-spec/",
     "./crates/stable-topo-sort/",
@@ -13,7 +13,7 @@ members = [
 resolver = "3"
 
 [workspace.dependencies]
-devpp-containerfile = { path = "./crates/devpp-containerfile/" }
+containerfile = { path = "./crates/containerfile/" }
 devpp-core = { path = "./crates/devpp-core/" }
 devpp-spec = { path = "./crates/devpp-spec/" }
 stable-topo-sort = { path = "./crates/stable-topo-sort/" }

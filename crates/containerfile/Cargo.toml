@@ -4,19 +4,13 @@
 [build-dependencies]
 
 [dependencies]
-dockerfile-parser-rs = "3.2.2"
-thiserror = "2.0.17"
-
-devpp-spec = { workspace = true }
 
 [dev-dependencies]
 
 [features]
-default = ["devpp"]
-
-devpp = ["devpp-spec/devpp"]
+default = []
 
 [package]
 edition = "2024"
-name = "devpp-containerfile"
+name = "containerfile"
 version = "0.0.0"
