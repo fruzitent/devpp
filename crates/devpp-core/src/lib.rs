@@ -28,6 +28,7 @@ use devpp_spec::devpp::generated::MountType as DevppMountType;
 use devpp_spec::feat::Feature;
 use devpp_spec::feat::Reference;
 use devpp_spec::feat::generated::FeatureOption;
+use devpp_spec::get_metadata;
 use stable_topo_sort::stable_topo_sort;
 
 use crate::error::Error;
@@ -154,6 +155,14 @@ pub fn build(mut w: impl Write, workspace: &Path, config: Option<&Path>) -> Resu
         feat_sink.push(Instr::Empty);
     }
 
+    if !features.is_empty() {
+        feat_sink.push(Instr::Label(vec![(
+            String::from("devcontainer.metadata"),
+            get_metadata(&devc, &features.values().map(|entry| &entry.feat).collect::<Vec<_>>())?,
+        )]));
+        feat_sink.push(Instr::Empty);
+    }
+
     if matches!(feat_sink.last(), Some(Instr::Empty)) {
         feat_sink.pop();
     }
@@ -166,6 +175,7 @@ pub fn build(mut w: impl Write, workspace: &Path, config: Option<&Path>) -> Resu
     Ok(())
 }
 
+#[derive(Debug)]
 struct Entry<'a> {
     cstm: Customizations,
     feat: Feature,

@@ -47,7 +47,7 @@ pub enum Instr {
     ///https://github.com/moby/buildkit/blob/dockerfile/1.20.0-labs/frontend/dockerfile/docs/reference.md#healthcheck
     Healthcheck,
     ///https://github.com/moby/buildkit/blob/dockerfile/1.20.0-labs/frontend/dockerfile/docs/reference.md#label
-    Label,
+    Label(Vec<(String, String)>),
     ///https://github.com/moby/buildkit/blob/dockerfile/1.20.0-labs/frontend/dockerfile/docs/reference.md#maintainer
     Maintainer,
     ///https://github.com/moby/buildkit/blob/dockerfile/1.20.0-labs/frontend/dockerfile/docs/reference.md#onbuild
@@ -159,9 +159,12 @@ impl<'a> Display for InstrDisplay<'a> {
                 write!(f, "HEALTHCHECK")?;
                 unimplemented!();
             }
-            Instr::Label => {
+            Instr::Label(inner) => {
+                assert!(!inner.is_empty());
                 write!(f, "LABEL")?;
-                unimplemented!();
+                for (key, value) in inner {
+                    write!(f, " {key}={}", escape_str(self.escape, value))?;
+                }
             }
             Instr::Maintainer => {
                 write!(f, "MAINTAINER")?;
